@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","url":"allpackages-index.html"},{"l":"com.tknkla.rj"},{"l":"com.tknkla.rj.functions"},{"l":"com.tknkla.rj.groups"}]
