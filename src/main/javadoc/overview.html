@@ -1,0 +1,228 @@
+<html>
+<body>
+
+	<h1>List of algorithms</h1>
+	
+	<p>All algorithms are accessible as static methods of class <a href="com/tknkla/rj/RJ.html"><code>com.tknkla.rj.RJ</code></a>.
+		Majority of the algorithms are listed and explained here.</p>
+	
+	<h2>Parallel execution</h2>
+
+	<p>Majority of the algorithms are transparently parallelized. Parallelization is disabled by default but
+		can be enabled selecting an approriate <a href="com/tknkla/rj/ExecutionStrategy.html">ExecutionStrategy</a>.</p>
+	
+ 
+	<h3>Configuration of parallel execution:</h3>
+	<ul>
+		<li><a href="com/tknkla/rj/RJ.html#setExecutor(com.tknkla.rj.ExecutionStrategy)"><code>setExecutor(ExecutionStrategy)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#getExecutor()"><code>getExecutor()</code></a></li>
+	</ul>
+	
+	<p>Note that the parallelization setting is global. The recommended way to configure parallelization is
+		to select the execution strategy during application startup (or in the case of a programming library
+		it is not recommended to configure it at all but leave it to the application using the library).
+		Reconfiguration of the execution strategy is strongly discouraged unless it can be ensured that no
+		other thread is using any of the parallel algorithms in RJ at the same time. More dedicate control
+		over parallelization can be achieved with a custom implementation of <i>ExecutionStrategy</i>.
+		</p>
+	
+	<h3>Provided execution strategies:</h3>
+	<ul>
+		<li><a href="com/tknkla/rj/ExecutionStrategy.html#LOCAL"><code>ExecutionStrategy.LOCAL</code></a> (no parallelization; the default option)</li>
+		<li><a href="com/tknkla/rj/ExecutionStrategy.html#PARALLEL"><code>ExecutionStrategy.PARALLEL</code></a> (default parallelization using the shared ForkJoinPool)</li>
+	</ul>
+
+	<h3>Generic parallel execution:</h3>
+	<ul>
+		<li><a href="com/tknkla/rj/RJ.html#execute(int,int,java.util.function.IntConsumer)"><code>execute(int, int, IntConsumer)</code></a>
+		<li><a href="com/tknkla/rj/RJ.html#execute(int,int,int,java.util.function.IntUnaryOperator,java.util.function.IntBinaryOperator)"><code>execute(int, int, int, IntUnaryOperator, IntBinaryOperator)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#execute(int,int,long,java.util.function.IntToLongFunction,java.util.function.LongBinaryOperator)"><code>execute(int, int, long, IntToLongFunction, LongBinaryOperator)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#execute(int,int,T,java.util.function.IntFunction,java.util.function.BinaryOperator)"><code>execute(int, int, Object, IntFunction, BinaryOperator)</code></a></li>
+	</ul>
+	
+	<h2>Sorting and grouping</h2>
+
+	<p>Sorting and grouping algorithms which generate a preorder (array
+		of arrays of symbols) are named 'groups' while algorithms, which
+		generate an order (array of symbols), are named 'order'.</p>
+
+	<h3>Computation of absolute preorder:</h3>	
+	<ul>
+		<li><a href="com/tknkla/rj/RJ.html#groups(int,java.util.function.IntToLongFunction,com.tknkla.rj.functions.LongToIntBinaryOperator,com.tknkla.rj.functions.LongToIntBinaryOperator)"><code>groups(int, IntToLongFunction, LongToIntBinaryOperator, LongToIntBinaryOperator)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#groups(int,java.util.function.IntUnaryOperator,java.util.function.IntBinaryOperator,java.util.function.IntBinaryOperator)"><code>groups(int, IntUnaryOperator, IntBinaryOperator, IntBinaryOperator)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#groups(java.lang.Class,int,java.util.function.IntFunction,java.util.Comparator,java.util.Comparator)"><code>groups(Class, int, IntFunction, Comparator, Comparator)</code></a></li>
+	</ul>
+
+	<h3>Computation of absolute preorder within a preorder:</h3>
+	<ul>
+		<li><a href="com/tknkla/rj/RJ.html#groups(int%5B%5D%5B%5D,java.util.function.IntBinaryOperator,java.util.function.IntBinaryOperator)"><code>groups(int[][], IntBinaryOperator, IntBinaryOperator)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#groups(long%5B%5D%5B%5D,com.tknkla.rj.functions.LongToIntBinaryOperator,com.tknkla.rj.functions.LongToIntBinaryOperator)"><code>groups(long[][], LongToIntBinaryOperator, LongToIntBinaryOperator)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#groups(java.lang.Class,T%5B%5D%5B%5D,java.util.Comparator,java.util.Comparator)"><code>groups(Class, Object[][], Comparator, Comparator)</code></a></li>
+	</ul>
+
+	<h3>Computation of absolute order:</h3>
+	<ul>
+		<li><a href="com/tknkla/rj/RJ.html#order(int,java.util.function.IntToLongFunction,com.tknkla.rj.functions.LongToIntBinaryOperator,java.util.function.LongBinaryOperator)"><code>order(int, IntToLongFunction, LongToIntBinaryOperator, LongBinaryOperator)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#order(int,java.util.function.IntUnaryOperator,java.util.function.IntBinaryOperator,java.util.function.IntBinaryOperator)"><code>order(int, IntUnaryOperator, IntBinaryOperator, IntBinaryOperator)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#order(java.lang.Class,int,java.util.function.IntFunction,java.util.Comparator,java.util.function.BinaryOperator)"><code>order(Class, int, IntFunction, Comparator, BinaryOperator)</code></a></li>
+	</ul>
+
+	<h3>Computation of truly relative order:</h3>
+	<ul>
+		<li><a href="com/tknkla/rj/RJ.html#groups(int%5B%5D%5B%5D,java.util.function.IntBinaryOperator,com.tknkla.rj.groups.IntGroupOperator,java.util.function.IntBinaryOperator)"><code>groups(int[][], IntBinaryOperator, IntGroupOperator, IntBinaryOperator)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#groups(long%5B%5D%5B%5D,java.util.function.LongBinaryOperator,com.tknkla.rj.groups.LongGroupOperator,com.tknkla.rj.functions.LongToIntBinaryOperator)"><code>groups(long[][], LongBinaryOperator, LongGroupOperator, LongToIntBinaryOperator)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#groups(java.lang.Class,T%5B%5D%5B%5D,java.util.function.BiFunction,com.tknkla.rj.groups.GroupOperator,java.util.Comparator)"><code>groups(Class, Object[][], BiFunction, GroupOperator, Comparator)</code></a></li>
+	</ul>
+
+	<h3>Computation of strongly relative order:</h3>
+	<ul>
+		<li><a href="com/tknkla/rj/RJ.html#order(int%5B%5D%5B%5D,java.util.function.IntBinaryOperator,com.tknkla.rj.groups.IntGroupOperator,java.util.function.IntBinaryOperator)"><code>order(int[][], IntBinaryOperator, IntGroupOperator, IntBinaryOperator)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#order(long%5B%5D%5B%5D,java.util.function.LongBinaryOperator,com.tknkla.rj.groups.LongGroupOperator,com.tknkla.rj.functions.LongToIntBinaryOperator)"><code>order(long[][], LongBinaryOperator, LongGroupOperator, LongToIntBinaryOperator)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#order(java.lang.Class,T%5B%5D%5B%5D,java.util.function.BiFunction,com.tknkla.rj.groups.GroupOperator,java.util.Comparator)"><code>order(Class, Object[][], BiFunction, GroupOperator, Comparator)</code></a></li>
+	</ul>
+
+	<h3>Order propagation (the relative part of computation of relative order):</h3>
+	<ul>
+		<li><a href="com/tknkla/rj/RJ.html#propagate(int%5B%5D%5B%5D,java.util.function.IntBinaryOperator,java.util.function.IntBinaryOperator,com.tknkla.rj.groups.IntGroupOperator,java.util.function.Predicate)"><code>propagate(int[][], IntBinaryOperator, IntBinaryOperator, IntGroupOperator, Predicate)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#propagate(long%5B%5D%5B%5D,java.util.function.LongBinaryOperator,com.tknkla.rj.functions.LongToIntBinaryOperator,com.tknkla.rj.groups.LongGroupOperator,java.util.function.Predicate)"><code>propagate(long[][], LongBinaryOperator, LongToIntBinaryOperator, LongGroupOperator, Predicate)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#propagate(java.lang.Class,T%5B%5D%5B%5D,java.util.function.BiFunction,java.util.Comparator,com.tknkla.rj.groups.GroupOperator,java.util.function.Predicate)"><code>propagate(Class, Object[][], BiFunction, Comparator, GroupOperator, Predicate)</code></a></li>
+	</ul>
+	
+	<h2>Comparision</h2>
+
+	<h3>Relative comparision between vertices:</h3>
+	<ul>
+		<li><a href="com/tknkla/rj/RJ.html#compare(int,int,int%5B%5D%5B%5D,java.util.function.IntBinaryOperator,com.tknkla.rj.groups.IntGroupOperator)"><code>compare(int, int, int[][], IntBinaryOperator, IntGroupOperator)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#compare(long,long,long%5B%5D%5B%5D,java.util.function.LongBinaryOperator,com.tknkla.rj.groups.LongGroupOperator)"><code>compare(long, long, long[][], LongBinaryOperator, LongGroupOperator)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#compare(java.lang.Class,T,T,T%5B%5D%5B%5D,java.util.function.BiFunction,com.tknkla.rj.groups.GroupOperator)"><code>compare(Class, Object, Object, Object[][], BiFunction, GroupOperator)</code></a></li>
+	</ul>
+
+	<h3>Absolute comparision of arrays:</h3>
+	<ul>
+		<li><a href="com/tknkla/rj/RJ.html#compare(int%5B%5D,int%5B%5D,java.util.function.IntBinaryOperator)"><code>compare(int[], int[], IntBinaryOperator)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#compare(long%5B%5D,long%5B%5D,com.tknkla.rj.functions.LongToIntBinaryOperator)"><code>compare(long[], long[], LongToIntBinaryOperator)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#compare(T%5B%5D,T%5B%5D,java.util.Comparator)"><code>compare(Object[], Object[], Comparator)</code></a></li>
+	</ul>
+	
+	<h3>Combining comparisions:</h3>
+	<ul>
+		<li><a href="com/tknkla/rj/RJ.html#compare(int,java.util.function.IntUnaryOperator)"><code>compare(int, IntUnaryOperator)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#compare(java.util.function.IntSupplier...)"><code>compare(IntSupplier...)</code></a></li>
+	</ul>
+
+	<h2>Elementary array operations</h2>
+
+	<h3>Anary set operations for ordered arrays:</h3>
+	<ul>
+		<li><a href="com/tknkla/rj/RJ.html#merge(int,java.util.function.IntFunction,java.util.function.IntBinaryOperator,java.util.function.IntBinaryOperator,com.tknkla.rj.SetOperator)"><code>merge(int, IntFunction, IntBinaryOperator, IntBinaryOperator, SetOperator)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#merge(int,java.util.function.IntFunction,com.tknkla.rj.functions.LongToIntBinaryOperator,java.util.function.LongBinaryOperator,com.tknkla.rj.SetOperator)"><code>merge(int, IntFunction, LongToIntBinaryOperator, LongBinaryOperator, SetOperator)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#merge(java.lang.Class,int,java.util.function.IntFunction,java.util.Comparator,java.util.function.BinaryOperator,com.tknkla.rj.SetOperator)"><code>merge(Class, int, IntFunction, Comparator, BinaryOperator, SetOperator)</code></a></li>
+	</ul>
+
+	<h3>Binary set operations for ordered arrays:</h3>
+	<ul>
+		<li><a href="com/tknkla/rj/RJ.html#merge(int%5B%5D,int%5B%5D,java.util.function.IntBinaryOperator,java.util.function.IntBinaryOperator,com.tknkla.rj.SetOperator)"><code>merge(int[], int[], IntBinaryOperator, IntBinaryOperator, SetOperator)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#merge(long%5B%5D,long%5B%5D,com.tknkla.rj.functions.LongToIntBinaryOperator,java.util.function.LongBinaryOperator,com.tknkla.rj.SetOperator)"><code>merge(long[], long[], LongToIntBinaryOperator, LongBinaryOperator, SetOperator)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#merge(java.lang.Class,T%5B%5D,T%5B%5D,java.util.Comparator,java.util.function.BinaryOperator,com.tknkla.rj.SetOperator)"><code>merge(Class, Object[], Object[], Comparator, BinaryOperator, SetOperator)</code></a></li>
+	</ul>
+
+	<h3>Array creation and population (1d):</h3>
+	<ul>
+		<li><a href="com/tknkla/rj/RJ.html#populate(int,java.util.function.IntToLongFunction)"><code>populate(int, IntToLongFunction)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#populate(int,java.util.function.IntUnaryOperator)"><code>populate(int, IntUnaryOperator)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#populate(java.lang.Class,int,java.util.function.IntFunction)"><code>populate(Class, int, IntFunction)</code></a></li>
+	</ul>
+
+	<h3>Array creation and population (2d):</h3>
+	<ul>
+		<li><a href="com/tknkla/rj/RJ.html#populate(int,int,java.util.function.IntBinaryOperator)"><code>populate(int, int, IntBinaryOperator)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#populate(int,int,com.tknkla.rj.functions.IntToLongBinaryOperator)"><code>populate(int, int, IntToLongBinaryOperator)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#populate(java.lang.Class,int,int,com.tknkla.rj.functions.IntBiFunction)"><code>populate(Class, int, int, IntBiFunction)</code></a></li>
+	</ul>
+
+	<h3>Anary array concatenation:</h3>
+	<ul>
+		<li><a href="com/tknkla/rj/RJ.html#joinAsInt(int,java.util.function.IntFunction)"><code>joinAsInt(int, IntFunction)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#joinAsLong(int,java.util.function.IntFunction)"><code>joinAsLong(int, IntFunction)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#join(java.lang.Class,int,java.util.function.IntFunction)"><code>join(Class, int, IntFunction)</code></a></li>
+	</ul>
+
+	<h3>Binary array concatenation:</h3>
+	<ul>
+		<li><a href="com/tknkla/rj/RJ.html#join(int%5B%5D,int%5B%5D)"><code>join(int[], int[])</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#join(long%5B%5D,long%5B%5D)"><code>join(long[], long[])</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#join(T%5B%5D,T%5B%5D)"><code>join(Object[], Object[])</code></a></li>
+	</ul>
+
+	<h3>Trinary array concatenation:</h3>
+	<ul>
+		<li><a href="com/tknkla/rj/RJ.html#join(int%5B%5D,int%5B%5D,int%5B%5D)"><code>join(int[], int[], int[])</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#join(long%5B%5D,long%5B%5D,long%5B%5D)"><code>join(long[], long[], long[])</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#join(T%5B%5D,T%5B%5D,T%5B%5D)"><code>join(Object[], Object[], Object[])</code></a></li>
+	</ul>
+
+	<h2>Searching</h2>
+
+	<h3>Abstract binary search:</h3>
+	<ul>
+		<li><a href="com/tknkla/rj/RJ.html#search(int,int,java.util.function.IntUnaryOperator)"><code>search(int, int, IntUnaryOperator)</code></a></li>
+	</ul>
+
+	<h3>Abstract linear search (first match and best match):</h3>
+	<ul>
+		<li><a href="com/tknkla/rj/RJ.html#search(int,int,java.util.function.IntPredicate)"><code>search(int, int, IntPredicate)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#search(int,int,com.tknkla.rj.functions.IntBinaryPredicate)"><code>search(int, int, IntBinaryPredicate)</code></a></li>
+	</ul>
+
+	<h2>Graph utilities</h2>
+
+	<h3>Decoding of undirected graph (from binary):</h3>
+	<ul>
+		<li><a href="com/tknkla/rj/RJ.html#decodeUndirected(java.math.BigInteger)"><code>decodeUndirected(BigInteger)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#decodeUndirected(java.util.function.IntPredicate)"><code>decodeUndirected(IntPredicate)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#verticesOfUndirected(java.math.BigInteger)"><code>verticesOfUndirected(BigInteger)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#verticesOfUndirected(int)"><code>verticesOfUndirected(int)</code></a></li>
+	</ul>
+
+	<h3>Encoding of undirected graph (to binary):</h3>
+	<ul>
+		<li><a href="com/tknkla/rj/RJ.html#encodeUndirected(int,com.tknkla.rj.functions.IntBinaryPredicate)"><code>encodeUndirected(int, IntBinaryPredicate)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#encodeUndirected(int,com.tknkla.rj.functions.IntBinaryPredicate,java.util.function.IntConsumer)"><code>encodeUndirected(int, IntBinaryPredicate, IntConsumer)</code></a></li>
+	</ul>
+
+	<h3>Lambda wrappers for conversions between undirected and abstract graphs:</h3>
+	<ul>
+		<li><a href="com/tknkla/rj/RJ.html#asOperator(com.tknkla.rj.functions.IntBinaryPredicate)"><code>asOperator(IntBinaryPredicate)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#asOperator(com.tknkla.rj.functions.IntBinaryPredicate,int,int,int)"><code>asOperator(IntBinaryPredicate, int, int, int)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#asPredicate(java.util.function.IntBinaryOperator,java.util.function.IntPredicate)"><code>asPredicate(IntBinaryOperator, IntPredicate)</code></a></li>
+	</ul>
+
+	<h2>Randomization</h2>
+
+	<h3>Random binary generation:</h3>
+	<ul>
+		<li><a href="com/tknkla/rj/RJ.html#randomBinary(int,double,double,java.util.Random)"><code>randomBinary(int, double, double, Random)</code></a></li>
+	</ul>
+
+	<h3>Random order generation:</h3>
+	<ul>
+		<li><a href="com/tknkla/rj/RJ.html#randomOrder(int,java.util.Random)"><code>randomOrder(int, Random)</code></a></li>
+	</ul>
+
+	<h3>Random (undirected) graph generation (symmetric and asymmetric):</h3>
+	<ul>
+		<li><a href="com/tknkla/rj/RJ.html#randomUndirected(int,double,double,java.util.Random)"><code>randomUndirected(int, double, double, Random)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#randomUndirectedAsymmetric(int,double,java.util.Random)"><code>randomUndirectedAsymmetric(int, double, Random)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#randomUndirectedSymmetric(int,double,java.util.Random)"><code>randomUndirectedSymmetric(int, double, Random)</code></a></li>
+	</ul>
+
+	<h3>Shuffling:</h3>
+	<ul>
+		<li><a href="com/tknkla/rj/RJ.html#shuffle(int%5B%5D,java.util.Random)"><code>shuffle(int[], Random)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#shuffle(long%5B%5D,java.util.Random)"><code>shuffle(long[], Random)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#shuffle(T%5B%5D,java.util.Random)"><code>shuffle(Object[], Random)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#shuffle(int,int,com.tknkla.rj.functions.IntBinaryConsumer,java.util.Random)"><code>shuffle(int, int, IntBinaryConsumer, Random)</code></a></li>
+	</ul>
+
+</body>
+</html>
