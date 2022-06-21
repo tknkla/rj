@@ -37,4 +37,4 @@ Naming convention of methods uses method overloading extensively; all methods wh
 
 ## Supported types
 
-Most methods support object (by generics) and primitive int and long. Some methods support only int as array indices in Java are ints. No direct support is *currently* provided for floating point types as algoritms for computation of relative order are very sensitive to floating point rounding errors and/or proper associativity and hence unstable if not outright unusable with floats.
+Most methods support object (by generics) and primitive int and long. Some methods support only int as array indices in Java are ints. No direct support is *currently* provided for floating point types as algoritms for computation of relative order are very sensitive to floating point rounding errors and/or proper associativity and hence unstable if not outright unusable with floats. In other words, some redesign is required.

@@ -11,7 +11,7 @@
 
 	<organization>
 		<name>TKNKLA</name>
-		<url>http://tknkla.com</url>
+		<url>https://tknkla.com</url>
 	</organization>
 	
 	<licenses>
@@ -28,7 +28,6 @@
 		</developer>
 	</developers>
 
-	<!-- 
 	<distributionManagement>
 		<repository>
 			<id>github-tknkla-rj</id>
@@ -36,7 +35,6 @@
 			<url>https://maven.pkg.github.com/tknkla/rj</url>
 		</repository>
 	</distributionManagement>
-	 -->
 	
 	<build>
 		<plugins>
