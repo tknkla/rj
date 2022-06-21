@@ -1,13 +1,13 @@
 RJ - Relative (Algorithms and Related Utilities for) Java
 =========================================================
 
-RJ is a collection of parallelized elementary algorithms and related utilities suitable for writing relative algorithms in Java (1.8+), including the reference implementation of algorithm for computing a *relative order*.
+**RJ** is a collection of parallelized elementary algorithms and related utilities suitable for writing relative algorithms in Java (1.8+). RJ includes the reference implementation of an algorithm which can be used for computing a *relative order*.
 
-Relative order is a tractable (less than n² in the best case, approximately n⁴ in the worst case) computational problem into which (undirected) [graph canonization](https://en.wikipedia.org/wiki/Graph_canonization) and [graph isomorphism](https://en.wikipedia.org/wiki/Graph_isomorphism) can be reduced in polynomial time.
+**Relative order** is a tractable (less than n² in the best case, approximately n⁴ in the worst case) computational problem into which (undirected) [graph canonization](https://en.wikipedia.org/wiki/Graph_canonization) and [graph isomorphism](https://en.wikipedia.org/wiki/Graph_isomorphism) can be reduced in polynomial time.
 
 In practive, relative order is a (pre)order, computation of which requires no transitivity between the elements to be ordered. It can be used to compute canonical forms for arbitrary data structures and solving complex isomorphism problems.
 
-Relative algorithms are algorithms which make no assumptions regarding symmetric choices. Such algorithms are significantly faster than algorithms which make such assumptions in the case of problems where the amount of symmetry depends on the size of the input.
+**Relative algorithms** are algorithms which make no assumptions regarding symmetric choices. Such algorithms are significantly faster than algorithms which make such assumptions in the case of problems where the amount of symmetry depends on the size of the input.
 
 For a scientific article which explains the theory behind relative order, how it is computed in polynomial time and what relative algorithms generally are, see:
 
