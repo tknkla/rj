@@ -118,6 +118,7 @@ Compute canonical forms of the graphs to be tested as in the previous example; i
 
 Some example code can be found in the test source directory:
 
+- A minimal command line interface for computing a relative order (the input format is documented in the javadoc): <https://github.com/tknkla/rj/tree/develop/src/test/java/com/tknkla/rj/examples/cli> (in the develop branch)
 - An algorithm which counts the number of canonical graphs (a brute force method for determining the relativity class of undirected graph): <https://github.com/tknkla/rj/blob/main/src/test/java/com/tknkla/rj/examples/cgcounter>
 - The algorithm used to produce the visualizations (of computation of relative order) in the article mentioned above: <https://github.com/tknkla/rj/blob/main/src/test/java/com/tknkla/rj/examples/visualizer>
 
