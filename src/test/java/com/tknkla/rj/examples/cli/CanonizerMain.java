@@ -108,11 +108,12 @@ public class CanonizerMain {
 	private static void read(List<Edge> dst, InputStream in, String src) throws IOException {
 		LineNumberReader lnr = new LineNumberReader(new InputStreamReader(in, "utf-8"));
 		while (true) {
-			String li = lnr.readLine().trim();
+			String li = lnr.readLine();
 			if (li==null) {
 				break;
 			}
-			if (li.charAt(0)=='#' || li.length()==0) {
+			li = li.trim();
+			if (li.length()==0 || li.charAt(0)=='#') {
 				continue;
 			}
 			read(dst, li, src+":"+lnr.getLineNumber());
