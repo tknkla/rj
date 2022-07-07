@@ -22,11 +22,30 @@
  */
 package com.tknkla.rj;
 
-public class DefaultLocalRJTest extends AbstractRJTest {
+import java.util.function.Consumer;
+
+public class SimulatedParallel1RJTest extends AbstractSimulatedRJTest {
 
 	@Override
-	protected ExecutionStrategy create() {
-		return ExecutionStrategy.LOCAL;
+	public void execute(Consumer<Runnable> fn) {
+		boolean[] rt = new boolean[1];
+		fn.accept(() -> rt[0] = true);
+		assertTrue(rt[0]);
+	}
+
+	@Override
+	public void queue(Consumer<Runnable> a, Consumer<Runnable> b, Runnable h) {
+		boolean[] rt = new boolean[2];
+		if (rnd.nextBoolean()) {
+			a.accept(() -> rt[0] = true);
+			b.accept(() -> rt[1] = true);
+		} else {
+			a.accept(() -> rt[1] = true);
+			b.accept(() -> rt[0] = true);
+		}
+		assertTrue(rt[0]);
+		assertTrue(rt[1]);
+		h.run();
 	}
 
 }

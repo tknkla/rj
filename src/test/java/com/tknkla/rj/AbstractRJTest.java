@@ -28,6 +28,8 @@ import java.util.Comparator;
 import java.util.Random;
 import java.util.function.IntBinaryOperator;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.tknkla.rj.functions.IntBinaryPredicate;
@@ -37,9 +39,16 @@ import com.tknkla.rj.groups.LongGroupOperator;
 
 public abstract class AbstractRJTest extends TestSupport {
 
-	public AbstractRJTest(ExecutionStrategy xs) {
-		super();
-		RJ.setExecutor(xs);
+	protected abstract ExecutionStrategy create();
+	
+	@Before
+	public void before() {
+		RJ.setExecutor(create());
+	}
+	
+	@After
+	public void after() {
+		RJ.setExecutor(ExecutionStrategy.LOCAL);
 	}
 	
 	@Test
@@ -269,6 +278,17 @@ public abstract class AbstractRJTest extends TestSupport {
 	@Test
 	public void testUnion() {
 		testMerge(SetOperator.UNION, new int[0], new int[0], new int[0]);
+		testMerge(SetOperator.UNION, new int[] { 0,1 }, new int[] { 0,1 }, new int[0]);
+		testMerge(SetOperator.UNION, new int[] { 0,2,3 }, new int[0], new int[] { 0,2,3 });
+
+		testMerge(SetOperator.UNION, new int[] { 0,1,2,3,4,5 }, new int[] { 0,1,2 }, new int[] { 3,4,5 });
+		testMerge(SetOperator.UNION, new int[] { 0,1,2,3,4 }, new int[] { 0,1,2 }, new int[] { 2,3,4 });
+		testMerge(SetOperator.UNION, new int[] { 0,1,2,3 }, new int[] { 0,1,2 }, new int[] { 1,2,3 });
+		testMerge(SetOperator.UNION, new int[] { 0,1,2 }, new int[] { 0,1,2 }, new int[] { 0,1,2 });
+		testMerge(SetOperator.UNION, new int[] { 0,1,2,3 }, new int[] { 1,2,3 }, new int[] { 0,1,2 });
+		testMerge(SetOperator.UNION, new int[] { 0,1,2,3,4 }, new int[] { 2,3,4 }, new int[] { 0,1,2 });
+		testMerge(SetOperator.UNION, new int[] { 0,1,2,3,4,5 }, new int[] { 3,4,5 }, new int[] { 0,1,2 });
+
 		testMerge(SetOperator.UNION, new int[] { 0,1,2,3 }, new int[] { 0,1 }, new int[] { 0,2,3 });
 		testMerge(SetOperator.UNION, new int[] { 0,1,2,3 }, new int[] { 2,3 }, new int[] { 0,1,3 });
 		testMerge(SetOperator.UNION, new int[] { 0,1,2,3 }, new int[] { 0,3 }, new int[] { 1,2 });
@@ -277,6 +297,17 @@ public abstract class AbstractRJTest extends TestSupport {
 	@Test
 	public void testIntersection() {
 		testMerge(SetOperator.ISECT, new int[0], new int[0], new int[0]);
+		testMerge(SetOperator.ISECT, new int[0], new int[] { 0,1 }, new int[0]);
+		testMerge(SetOperator.ISECT, new int[0], new int[0], new int[] { 0,2,3 });
+
+		testMerge(SetOperator.ISECT, new int[0], new int[] { 0,1,2 }, new int[] { 3,4,5 });
+		testMerge(SetOperator.ISECT, new int[] { 2 }, new int[] { 0,1,2 }, new int[] { 2,3,4 });
+		testMerge(SetOperator.ISECT, new int[] { 1,2 }, new int[] { 0,1,2 }, new int[] { 1,2,3 });
+		testMerge(SetOperator.ISECT, new int[] { 0,1,2 }, new int[] { 0,1,2 }, new int[] { 0,1,2 });
+		testMerge(SetOperator.ISECT, new int[] { 1,2 }, new int[] { 1,2,3 }, new int[] { 0,1,2 });
+		testMerge(SetOperator.ISECT, new int[] { 2 }, new int[] { 2,3,4 }, new int[] { 0,1,2 });
+		testMerge(SetOperator.ISECT, new int[0], new int[] { 3,4,5 }, new int[] { 0,1,2 });
+		
 		testMerge(SetOperator.ISECT, new int[] { 0 }, new int[] { 0,1 }, new int[] { 0,2,3 });
 		testMerge(SetOperator.ISECT, new int[] { 3 }, new int[] { 2,3 }, new int[] { 0,1,3 });
 		testMerge(SetOperator.ISECT, new int[0], new int[] { 0,3 }, new int[] { 1,2 });
@@ -285,6 +316,17 @@ public abstract class AbstractRJTest extends TestSupport {
 	@Test
 	public void testDifference() {
 		testMerge(SetOperator.DIFF, new int[0], new int[0], new int[0]);
+		testMerge(SetOperator.DIFF, new int[] { 0,2,3 }, new int[0], new int[] { 0,2,3 });
+		testMerge(SetOperator.DIFF, new int[] { 0,1 }, new int[] { 0,1 }, new int[0]);
+
+		testMerge(SetOperator.DIFF, new int[] { 0,1,2,3,4,5 }, new int[] { 0,1,2 }, new int[] { 3,4,5 });
+		testMerge(SetOperator.DIFF, new int[] { 0,1,3,4 }, new int[] { 0,1,2 }, new int[] { 2,3,4 });
+		testMerge(SetOperator.DIFF, new int[] { 0,3 }, new int[] { 0,1,2 }, new int[] { 1,2,3 });
+		testMerge(SetOperator.DIFF, new int[0], new int[] { 0,1,2 }, new int[] { 0,1,2 });
+		testMerge(SetOperator.DIFF, new int[] { 0,3 }, new int[] { 1,2,3 }, new int[] { 0,1,2 });
+		testMerge(SetOperator.DIFF, new int[] { 0,1,3,4 }, new int[] { 2,3,4 }, new int[] { 0,1,2 });
+		testMerge(SetOperator.DIFF, new int[] { 0,1,2,3,4,5 }, new int[] { 3,4,5 }, new int[] { 0,1,2 });
+
 		testMerge(SetOperator.DIFF, new int[] { 1,2,3 }, new int[] { 0,1 }, new int[] { 0,2,3 });
 		testMerge(SetOperator.DIFF, new int[] { 0,1,2 }, new int[] { 2,3 }, new int[] { 0,1,3 });
 		testMerge(SetOperator.DIFF, new int[] { 0,1,2,3 }, new int[] { 0,3 }, new int[] { 1,2 });
@@ -334,19 +376,33 @@ public abstract class AbstractRJTest extends TestSupport {
 		}
 	}
 
-	public void testExecution(int n) {
+	public void testExecution1(int n) {
 		int ev = (n*n-n)/2;
 		assertEquals(ev, RJ.execute(0, n, 0, (int p) -> p, (int a, int b) -> a+b));
 		assertEquals(ev, RJ.execute(0, n, 0, (int p) -> (long)p, (long a, long b) -> a+b));
 		assertEquals(BigInteger.valueOf(ev), RJ.execute(0, n, BigInteger.ZERO, (int p) -> BigInteger.valueOf(p), (BigInteger a, BigInteger b) -> a.add(b)));
 	}
-
+	
 	@Test
-	public void testExecution() {
-		testExecution(1);
-		testExecution(10);
-		testExecution(100);
-		testExecution(1000);
+	public void testExecution1() {
+		testExecution1(1);
+		testExecution1(10);
+		testExecution1(100);
+		testExecution1(1000);
+	}
+
+	public void testExecution2(int n) {
+		assertEquals(n, RJ.execute(0, n, 0, (int p) -> 1, (int a, int b) -> a+b));
+		assertEquals(n, RJ.execute(0, n, 0, (int p) -> 1, (long a, long b) -> a+b));
+		assertEquals(BigInteger.valueOf(n), RJ.execute(0, n, BigInteger.ZERO, (int p) -> BigInteger.ONE, (BigInteger a, BigInteger b) -> a.add(b)));
+	}
+	
+	@Test
+	public void testExecution2() {
+		testExecution2(1000);
+		testExecution2(10000);
+		testExecution2(100000);
+		testExecution2(1000000);
 	}
 
 }

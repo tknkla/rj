@@ -143,12 +143,13 @@ public final class RJ {
 	}
 	
 	private static void _execute(int from, int to, IntConsumer fn, Runnable fh) {
-		if (xs.fork(to-from)) {
+		int ln = to-from;
+		if (ln>1 && xs.fork(ln)) {
 			int h = (from+to)>>1;
 			xs.queue((Runnable nh) -> _execute(from, h, fn, nh),
 					(Runnable nh) -> _execute(h, to, fn, nh),
 					fh);
-		} else {
+		} else if (ln>0) {
 			try {
 				_execute(from, to, fn);
 			} finally {
@@ -184,7 +185,11 @@ public final class RJ {
 	}
 
 	private static void _execute(int from, int to, int id, IntUnaryOperator fv, IntBinaryOperator fm, IntConsumer fh) {
-		if (xs.fork(to-from)) {
+		if (from>=to) {
+			fh.accept(id);
+		} else if (from+1==to) {
+			fh.accept(fv.applyAsInt(from));
+		} else if (xs.fork(to-from)) {
 			int h = (from+to)>>1;
 			xs.queue((IntConsumer nh) -> _execute(from, h, id, fv, fm, nh),
 					(IntConsumer nh) -> _execute(h, to, id, fv, fm, nh),
@@ -221,7 +226,11 @@ public final class RJ {
 	}
 
 	private static void _execute(int from, int to, long id, IntToLongFunction fv, LongBinaryOperator fm, LongConsumer fh) {
-		if (xs.fork(to-from)) {
+		if (from>=to) {
+			fh.accept(id);
+		} else if (from+1==to) {
+			fh.accept(fv.applyAsLong(from));
+		} else if (xs.fork(to-from)) {
 			int h = (from+to)>>1;
 			xs.queue((LongConsumer nh) -> _execute(from, h, id, fv, fm, nh),
 					(LongConsumer nh) -> _execute(h, to, id, fv, fm, nh),
@@ -273,7 +282,11 @@ public final class RJ {
 	}
 
 	private static <T> void _execute(int from, int to, T id, IntFunction<T> fv, BinaryOperator<T> fm, Consumer<T> fh) {
-		if (xs.fork(to-from)) {
+		if (from>=to) {
+			fh.accept(id);
+		} else if (from+1==to) {
+			fh.accept(fv.apply(from));
+		} else if (xs.fork(to-from)) {
 			int h = (from+to)>>1;
 			xs.queue((Consumer<T> nh) -> _execute(from, h, id, fv, fm, nh),
 					(Consumer<T> nh) -> _execute(h, to, id, fv, fm, nh),
@@ -1203,7 +1216,7 @@ public final class RJ {
 	public static <T> T[] empty(Class<? extends T> rc) {
 		return (T[]) Array.newInstance(rc, 0);
 	}
-	
+
 	/* MERGE/ANARY */
 
 	/**
@@ -1276,8 +1289,8 @@ public final class RJ {
 				? empty(rc)
 				: execute(0, n, empty(rc), fn, (T[] a, T[] b) -> merge(rc, a, b, cmp, fm, op));
 	}
-
-	/* MERGE/BINARY */
+	
+	/* MERGE/BINARY/MANY-MANY */
 	
 	/**
 	 * (P) Applies a set operation upon a pair of sets expressed as ordered arrays of <code>int</code>s.
@@ -1305,7 +1318,7 @@ public final class RJ {
 			fh.accept(op.left ? afrom==0 && ato==as.length ? as : ato>afrom ? Arrays.copyOfRange(as,afrom,ato) : EMPTY_INT : EMPTY_INT);
 		} else {
 			int ln = ato+bto-afrom-bfrom;
-			if (xs.fork(ln)) {
+			if (ato-afrom>2 && bto-bfrom>2 && xs.fork(ln)) {
 				int ah = (ato-afrom)>>1;
 				int bh = (bto-bfrom)>>1;
 				
@@ -1399,7 +1412,7 @@ public final class RJ {
 			fh.accept(op.left ? afrom==0 && ato==as.length ? as : ato>afrom ? Arrays.copyOfRange(as,afrom,ato) : EMPTY_LONG : EMPTY_LONG);
 		} else {
 			int ln = ato+bto-afrom-bfrom;
-			if (xs.fork(ln)) {
+			if (ato-afrom>2 && bto-bfrom>2 && xs.fork(ln)) {
 				int ah = (ato-afrom)>>1;
 				int bh = (bto-bfrom)>>1;
 				
@@ -1497,7 +1510,7 @@ public final class RJ {
 			fh.accept(op.left ? afrom==0 && ato==as.length ? as : ato>afrom ? Arrays.copyOfRange(as,afrom,ato) : (T[])empty(as.getClass().getComponentType()) : (T[])empty(as.getClass().getComponentType()));
 		} else {
 			int ln = ato+bto-afrom-bfrom;
-			if (xs.fork(ln)) {
+			if (ato-afrom>2 && bto-bfrom>2 && xs.fork(ln)) {
 				int ah = (ato-afrom)>>1;
 				int bh = (bto-bfrom)>>1;
 				

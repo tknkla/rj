@@ -28,8 +28,6 @@ import java.util.concurrent.ForkJoinPool.ManagedBlocker;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
-import com.tknkla.rj.functions.IntBinaryPredicate;
-
 /**
  * Parallel execution strategy based on {@link ForkJoinPool}.
  * 
@@ -38,21 +36,26 @@ import com.tknkla.rj.functions.IntBinaryPredicate;
 public class ForkJoinPoolExecutionStrategy implements ExecutionStrategy {
 	
 	private final ForkJoinPool xs;
-	private final IntBinaryPredicate forkCond;
+	private final int workSizeFactor;
+	private final int concurrency;
 	
 	private final ThreadLocal<Integer> cd = ThreadLocal.withInitial(() -> 0);
 
 	/**
-	 * Default constuctor.
+	 * Default constructor.
 	 * 
+ 	 * <p>Forks if <code>depth &lt; concurrency</code> and <code>size &gt; workSizeFactor*(depth^2+1)</code></p>.
+ 	 * 
 	 * @param xs Thread pool.
 	 * @param forkCond Forking condition (first argument is task size, second argument is fork depth).
-	 * @param blockCycleMs Blocking cycle length in milliseconds.
+	 * @param workSizeFactor Minimal work size.
+	 * @param concurrency Concurrency number (base-2 logarithm of number of threads).
 	 */
-	public ForkJoinPoolExecutionStrategy(ForkJoinPool xs, IntBinaryPredicate forkCond) {
+	public ForkJoinPoolExecutionStrategy(ForkJoinPool xs, int workSizeFactor, int concurrency) {
 		super();
 		this.xs = xs;
-		this.forkCond = forkCond;
+		this.workSizeFactor = workSizeFactor;
+		this.concurrency = concurrency;
 	}
 	
 	/**
@@ -109,22 +112,8 @@ public class ForkJoinPoolExecutionStrategy implements ExecutionStrategy {
 
 	@Override
 	public boolean fork(int taskSize) {
-		return taskSize>1 && forkCond.test(taskSize, cd.get());
+		int depth = cd.get();
+		return taskSize>workSizeFactor*(depth*depth+1) && depth<concurrency;
 	}
 	
-	/**
-	 * Returns a default forking condition.
-	 * 
-	 * <p>Forks if <code>depth &lt; forkDepth</code> and <code>size &gt; workSize*(depth^2+1)</code>.
-	 * 
-	 * @param forkDepth Maximum forking depth.
-	 * @param workSize Minimal work size.
-	 * @return Forking condition.
-	 */
-	public static IntBinaryPredicate defaultCondition(int forkDepth, int workSize) {
-		return (int size, int depth) -> {
-			return size>workSize*(depth*depth+1) && depth<forkDepth;
-		};
-	}
-
 }

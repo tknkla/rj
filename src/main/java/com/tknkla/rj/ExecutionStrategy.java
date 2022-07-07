@@ -123,8 +123,7 @@ public interface ExecutionStrategy {
 	 */
 	static ExecutionStrategy PARALLEL = ((Supplier<ExecutionStrategy>)(() -> {
 		ForkJoinPool cp = ForkJoinPool.commonPool();
-		return new ForkJoinPoolExecutionStrategy(cp,
-			ForkJoinPoolExecutionStrategy.defaultCondition(32 - Integer.numberOfLeadingZeros(cp.getParallelism()), 4));
+		return new ForkJoinPoolExecutionStrategy(cp, 32 - Integer.numberOfLeadingZeros(cp.getParallelism()), 4);
 		})).get();
 	
 	/* EXECUTE/LATCH */
@@ -383,18 +382,19 @@ public interface ExecutionStrategy {
 	 * 
 	 * <p>If concurrency is zero, {@link #LOCAL} is returned; otherwise an instance of
 	 *  {@link ForkJoinPoolExecutionStrategy} is created with an associated pool which can be
-	 *  accessed through {@link ForkJoinPoolExecutionStrategy#getPool()}
+	 *  accessed through {@link ForkJoinPoolExecutionStrategy#getPool()}.</p>
 	 * 
 	 * @param concurrency Concurrency number (base-2 logarithm of number of threads).
-	 * @param workSize Minimal work size
+	 * @param workSizeFactor Minimal work size.
 	 * @return An execution strategy.
+	 * @see ForkJoinPoolExecutionStrategy
 	 */
-	static ExecutionStrategy create(int concurrency, int workSize) {
+	static ExecutionStrategy create(int concurrency, int workSizeFactor) {
 		return concurrency==0
 				? LOCAL
 				: new ForkJoinPoolExecutionStrategy(
 						new ForkJoinPool(1<<concurrency, ForkJoinPool.defaultForkJoinWorkerThreadFactory, null, true),
-						ForkJoinPoolExecutionStrategy.defaultCondition(concurrency, workSize));
+						concurrency, workSizeFactor);
 	}
 	
 }

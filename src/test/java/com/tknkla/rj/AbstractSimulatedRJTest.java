@@ -22,11 +22,28 @@
  */
 package com.tknkla.rj;
 
-public class DefaultLocalRJTest extends AbstractRJTest {
+import java.util.Random;
 
+import org.junit.Before;
+
+public abstract class AbstractSimulatedRJTest extends AbstractRJTest implements ExecutionStrategy {
+
+	protected final Random rnd = new Random();
+	
 	@Override
 	protected ExecutionStrategy create() {
-		return ExecutionStrategy.LOCAL;
+		return this;
+	}
+
+	@Override
+	public boolean fork(int taskSize) {
+		return taskSize>0;
+	}
+	
+	@Before
+	public void before() {
+		super.before();
+		rnd.setSeed(0);
 	}
 
 }
