@@ -336,6 +336,7 @@ public interface ExecutionStrategy {
 	 * @param h Consumer to be executed afterward both tasks are finished.
 	 * @param fn Merge operator.
 	 */
+	@Deprecated
 	default <T, R> void queue(Consumer<Consumer<T>> a, Consumer<Consumer<T>> b, Consumer<Consumer<T>> c, Consumer<R> h, TriFunction<T, T, T, R> fn) {
 		AtomicReference<T> ra = new AtomicReference<>();
 		AtomicReference<T> rb = new AtomicReference<>();
