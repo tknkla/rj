@@ -96,6 +96,10 @@ public enum SetOperator {
 		this.both = both;
 	}
 	
+	public SetOperator reverse() {
+		return of(right, left, both);
+	}
+	
 	/**
 	 * Returns a set operator based on provided truth table.
 	 * 

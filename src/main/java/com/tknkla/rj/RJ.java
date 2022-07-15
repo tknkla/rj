@@ -1312,12 +1312,11 @@ public final class RJ {
 			return EMPTY_INT;
 		}
 		int cv = cmp.applyAsInt(a, b);
-		return cv!=0 ? op.left && op.right ? cv<0 ? new int[] { a, b } : new int[] { b, a }
-					: op.left ? cv<0 ? new int[] { a } : new int[] { b }
-					: op.right ? cv>0 ? new int[] { a } : new int[] { b }
-					: EMPTY_INT
-				: op.both ? new int[] { fm.applyAsInt(a, b) }
-				: EMPTY_INT;
+		return cv==0 ? op.both ? new int[] { fm.applyAsInt(a, b) } : EMPTY_INT
+				: op.left && op.right ? cv<0 ? new int[] { a, b } : new int[] { b, a }
+					: op.left ? new int[] { a }
+					: op.right ? new int[] { b }
+					: EMPTY_INT;
 	}
 
 	public static long[] merge(long a, long b, LongToIntBinaryOperator cmp, LongBinaryOperator fm, SetOperator op) {
@@ -1325,12 +1324,11 @@ public final class RJ {
 			return RJ.EMPTY_LONG;
 		}
 		int cv = cmp.applyAsInt(a, b);
-		return cv!=0 ? op.left && op.right ? cv<0 ? new long[] { a, b } : new long[] { b, a }
-					: op.left ? cv<0 ? new long[] { a } : new long[] { b }
-					: op.right ? cv>0 ? new long[] { a } : new long[] { b }
-					: RJ.EMPTY_LONG
-				: op.both ? new long[] { fm.applyAsLong(a, b) }
-				: RJ.EMPTY_LONG;
+		return cv==0 ? op.both ? new long[] { fm.applyAsLong(a, b) } : EMPTY_LONG
+				: op.left && op.right ? cv<0 ? new long[] { a, b } : new long[] { b, a }
+					: op.left ? new long[] { a }
+					: op.right ? new long[] { b }
+					: RJ.EMPTY_LONG;
 	}
 	
 	public static <T> T[] merge(Class<? extends T> rc, T a, T b, Comparator<T> cmp, BinaryOperator<T> fm, SetOperator op) {
@@ -1338,14 +1336,153 @@ public final class RJ {
 			return RJ.empty(rc);
 		}
 		int cv = cmp.compare(a, b);
-		return cv!=0 ? op.left && op.right ? cv<0 ? wrap(rc, a, b) : wrap(rc, b, a)
-					: op.left ? wrap(rc, cv<0 ? a : b)
-					: op.right ? wrap(rc, cv>0 ? a : b)
-					: RJ.empty(rc)
-				: op.both ? wrap(rc, fm.apply(a, b))
-				: RJ.empty(rc);
+		return cv==0 ? op.both ? wrap(rc, fm.apply(a, b)) : RJ.empty(rc)
+				: op.left && op.right ? cv<0 ? wrap(rc, a, b) : wrap(rc, b, a)
+					: op.left ? wrap(rc, a)
+					: op.right ? wrap(rc, b)
+					: RJ.empty(rc);
 	}
 
+	/* MERGE/BINARY/ONE-MANY */
+
+	public static int[] merge(int a, int bfrom, int bto, int[] bs, IntBinaryOperator cmp, IntBinaryOperator fm, SetOperator op) {
+		if (bto-bfrom<=0) {
+			return op.left ? new int[] { a } : EMPTY_INT;
+		} else if (bto-bfrom==1) {
+			return merge(a, bs[bfrom], cmp, fm, op);
+		} else if (op==SetOperator.EMPTY) {
+			return EMPTY_INT;
+		}
+		
+		int p = search(bfrom, bto, (int r) -> cmp.applyAsInt(bs[r], a));
+		if (p<0) {
+			p = ~p;
+			if (op.left) {
+				if (op.right) {
+					int[] ret = new int[bto-bfrom+1];
+					System.arraycopy(bs, bfrom, ret, 0, p-bfrom);
+					System.arraycopy(bs, p, ret, p-bfrom+1, bto-p);
+					ret[p] = a;
+					return ret;
+				} else {
+					return new int[] { a };
+				}
+			} else {
+				return op.right ? Arrays.copyOfRange(bs, bfrom, bto) : EMPTY_INT;
+			}
+		} else if (op.both) {
+			if (op.right) {
+				int[] ret = Arrays.copyOfRange(bs, bfrom, bto);
+				ret[p-bfrom] = fm.applyAsInt(a, bs[p]);
+				return ret;
+			} else {
+				return new int[] { fm.applyAsInt(a, bs[p]) };
+			}
+		} else {
+			int[] ret = new int[bto-bfrom-1];
+			System.arraycopy(bs, bfrom, ret, 0, p-bfrom);
+			System.arraycopy(bs, p+1, ret, p-bfrom, bto-p-1);
+			return ret;
+		}
+	}
+
+	public static long[] merge(long a, int bfrom, int bto,long[] bs, LongToIntBinaryOperator cmp, LongBinaryOperator fm, SetOperator op) {
+		if (bto-bfrom<=0) {
+			return op.left ? new long[] { a } : EMPTY_LONG;
+		} else if (bto-bfrom==1) {
+			return merge(a, bs[bfrom], cmp, fm, op);
+		} else if (op==SetOperator.EMPTY) {
+			return EMPTY_LONG;
+		}
+		
+		int p = search(bfrom, bto, (int r) -> cmp.applyAsInt(bs[r], a));
+		if (p<0) {
+			p = ~p;
+			if (op.left) {
+				if (op.right) {
+					long[] ret = new long[bto-bfrom+1];
+					System.arraycopy(bs, bfrom, ret, 0, p-bfrom);
+					System.arraycopy(bs, p, ret, p-bfrom+1, bto-p);
+					ret[p] = a;
+					return ret;
+				} else {
+					return new long[] { a };
+				}
+			} else {
+				return op.right ? Arrays.copyOfRange(bs, bfrom, bto) : EMPTY_LONG;
+			}
+		} else if (op.both) {
+			if (op.right) {
+				long[] ret = Arrays.copyOfRange(bs, bfrom, bto);
+				ret[p-bfrom] = fm.applyAsLong(a, bs[p]);
+				return ret;
+			} else {
+				return new long[] { fm.applyAsLong(a, bs[p]) };
+			}
+		} else {
+			long[] ret = new long[bto-bfrom-1];
+			System.arraycopy(bs, bfrom, ret, 0, p-bfrom);
+			System.arraycopy(bs, p+1, ret, p-bfrom, bto-p-1);
+			return ret;
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static <T> T[] merge(Class<? extends T> rc, T a, int bfrom, int bto, T[] bs, Comparator<T> cmp, BinaryOperator<T> fm, SetOperator op) {
+		if (bto-bfrom<=0) {
+			return op.left ? wrap(rc, a) : empty(rc);
+		} else if (bto-bfrom==1) {
+			return merge(rc, a, bs[bfrom], cmp, fm, op);
+		} else if (op==SetOperator.EMPTY) {
+			return empty(rc);
+		}
+		
+		int p = search(bfrom, bto, (int r) -> cmp.compare(bs[r], a));
+		if (p<0) {
+			p = ~p;
+			if (op.left) {
+				if (op.right) {
+					T[] ret = (T[])Array.newInstance(rc, bto-bfrom+1);
+					System.arraycopy(bs, bfrom, ret, 0, p-bfrom);
+					System.arraycopy(bs, p, ret, p-bfrom+1, bto-p);
+					ret[p] = a;
+					return ret;
+				} else {
+					return wrap(rc, a);
+				}
+			} else {
+				return op.right ? Arrays.copyOfRange(bs, bfrom, bto) : empty(rc);
+			}
+		} else if (op.both) {
+			if (op.right) {
+				T[] ret = Arrays.copyOfRange(bs, bfrom, bto);
+				ret[p-bfrom] = fm.apply(a, bs[p]);
+				return ret;
+			} else {
+				return wrap(rc, fm.apply(a, bs[p]));
+			}
+		} else {
+			T[] ret = (T[])Array.newInstance(rc, bto-bfrom-1);
+			System.arraycopy(bs, bfrom, ret, 0, p-bfrom);
+			System.arraycopy(bs, p+1, ret, p-bfrom, bto-p-1);
+			return ret;
+		}
+	}
+
+	/* MERGE/BINARY/MANY-ONE */
+
+	public static int[] merge(int afrom, int ato, int[] as, int b, IntBinaryOperator cmp, IntBinaryOperator fm, SetOperator op) {
+		return merge(b, afrom, ato, as, cmp, (int va, int vb) -> fm.applyAsInt(vb, va), op.reverse());
+	}
+
+	public static long[] merge(int afrom, int ato, long[] as, long b, LongToIntBinaryOperator cmp, LongBinaryOperator fm, SetOperator op) {
+		return merge(b, afrom, ato, as, cmp, (long va, long vb) -> fm.applyAsLong(vb, va), op.reverse());
+	}
+
+	public static <T> T[] merge(Class<? extends T> rc, int afrom, int ato, T[] as, T b, Comparator<T> cmp, BinaryOperator<T> fm, SetOperator op) {
+		return merge(rc, b, afrom, ato, as, cmp, (T va, T vb) -> fm.apply(vb, va), op.reverse());
+	}
+	
 	/* MERGE/BINARY/MANY-MANY */
 	
 	/**
@@ -1400,8 +1537,10 @@ public final class RJ {
 			xs.queue((Consumer<int[]> h) -> _merge(afrom, ap, as, bfrom, bp, bs, cmp, fm, op, h),
 					(Consumer<int[]> h) -> _merge(ap, ato, as, bp, bto, bs, cmp, fm, op, h),
 					fh, RJ::join);
-		} else if (ato-afrom==1 && bto-bfrom==1) {
-			fh.accept(merge(as[afrom], bs[bfrom], cmp, fm, op));
+		} else if (ato-afrom==1) {
+			fh.accept(merge(as[afrom], bfrom, bto, bs, cmp, fm, op));
+		} else if (bto-bfrom==1) {
+			fh.accept(merge(afrom, ato, as, bs[bfrom], cmp, fm, op));
 		} else if (ato-afrom<=0) {
 			fh.accept(op.right ? bfrom==0 && bto==bs.length ? bs : bto>bfrom ? Arrays.copyOfRange(bs,bfrom,bto) : EMPTY_INT : EMPTY_INT);
 		} else if (bto-bfrom<=0) {
@@ -1501,8 +1640,10 @@ public final class RJ {
 			xs.queue((Consumer<long[]> h) -> _merge(afrom, ap, as, bfrom, bp, bs, cmp, fm, op, h),
 					(Consumer<long[]> h) -> _merge(ap, ato, as, bp, bto, bs, cmp, fm, op, h),
 					fh, RJ::join);
-		} else if (ato-afrom==1 && bto-bfrom==1) {
-			fh.accept(merge(as[afrom], bs[bfrom], cmp, fm, op));
+		} else if (ato-afrom==1) {
+			fh.accept(merge(as[afrom], bfrom, bto, bs, cmp, fm, op));
+		} else if (bto-bfrom==1) {
+			fh.accept(merge(afrom, ato, as, bs[bfrom], cmp, fm, op));
 		} else if (ato-afrom<=0) {
 			fh.accept(op.right ? bfrom==0 && bto==bs.length ? bs : bto>bfrom ? Arrays.copyOfRange(bs,bfrom,bto) : EMPTY_LONG : EMPTY_LONG);
 		} else if (bto-bfrom<=0) {
@@ -1606,8 +1747,10 @@ public final class RJ {
 			xs.queue((Consumer<T[]> h) -> _merge(rc, afrom, ap, as, bfrom, bp, bs, cmp, fm, op, h),
 					(Consumer<T[]> h) -> _merge(rc, ap, ato, as, bp, bto, bs, cmp, fm, op, h),
 					fh, RJ::join);
-		} else if (ato-afrom==1 && bto-bfrom==1) {
-			fh.accept(merge(rc, as[afrom], bs[bfrom], cmp, fm, op));
+		} else if (ato-afrom==1) {
+			fh.accept(merge(rc, as[afrom], bfrom, bto, bs, cmp, fm, op));
+		} else if (bto-bfrom==1) {
+			fh.accept(merge(rc, afrom, ato, as, bs[bfrom], cmp, fm, op));
 		} else if (ato-afrom<=0) {
 			fh.accept(op.right ? bfrom==0 && bto==bs.length ? bs : bto>bfrom ? Arrays.copyOfRange(bs,bfrom,bto) : (T[])empty(as.getClass().getComponentType()) : (T[])empty(as.getClass().getComponentType()));
 		} else if (bto-bfrom<=0) {
