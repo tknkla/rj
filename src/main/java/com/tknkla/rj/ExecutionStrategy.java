@@ -53,6 +53,7 @@ import com.tknkla.rj.functions.TriFunction;
  * @author Timo Santasalo
  * @since 1.0.0
  */
+@SuppressWarnings("deprecation")
 public interface ExecutionStrategy {
 	
 	/**
