@@ -1307,6 +1307,17 @@ public final class RJ {
 
 	/* MERGE/BINARY/ONE-ONE */
 	
+	/**
+	 * Applies a set operation upon a pair of <code>int</code>s.
+	 * 
+	 * @param a Left item.
+	 * @param b Right item.
+	 * @param cmp Comparator (both arguments must abide the order).
+	 * @param fm Merge function (for combining equivalent items).
+	 * @param op Set operation.
+	 * @return Result set.
+	 * @since 1.1.0
+	 */
 	public static int[] merge(int a, int b, IntBinaryOperator cmp, IntBinaryOperator fm, SetOperator op) {
 		if (op==SetOperator.EMPTY) {
 			return EMPTY_INT;
@@ -1319,6 +1330,17 @@ public final class RJ {
 					: EMPTY_INT;
 	}
 
+	/**
+	 * Applies a set operation upon a pair of <code>long</code>s.
+	 * 
+	 * @param a Left item.
+	 * @param b Right item.
+	 * @param cmp Comparator (both arguments must abide the order).
+	 * @param fm Merge function (for combining equivalent items).
+	 * @param op Set operation.
+	 * @return Result set.
+	 * @since 1.1.0
+	 */
 	public static long[] merge(long a, long b, LongToIntBinaryOperator cmp, LongBinaryOperator fm, SetOperator op) {
 		if (op==SetOperator.EMPTY) {
 			return RJ.EMPTY_LONG;
@@ -1331,6 +1353,19 @@ public final class RJ {
 					: RJ.EMPTY_LONG;
 	}
 	
+	/**
+	 * Applies a set operation upon a pair of objects.
+	 * 
+	 * @param <T> Item type.
+	 * @param rc Item type.
+	 * @param a Left item.
+	 * @param b Right item.
+	 * @param cmp Comparator (both arguments must abide the order).
+	 * @param fm Merge function (for combining equivalent items).
+	 * @param op Set operation.
+	 * @return Result set.
+	 * @since 1.1.0
+	 */
 	public static <T> T[] merge(Class<? extends T> rc, T a, T b, Comparator<T> cmp, BinaryOperator<T> fm, SetOperator op) {
 		if (op==SetOperator.EMPTY) {
 			return RJ.empty(rc);
@@ -1345,6 +1380,19 @@ public final class RJ {
 
 	/* MERGE/BINARY/ONE-MANY */
 
+	/**
+	 * Applies a set operation upon an <code>int</code> and a set expressed an ordered array of <code>int</code>s.
+	 * 
+	 * @param a Left item.
+	 * @param bfrom Start of the right set (inclusive).
+	 * @param bto End of the right set (exclusive).
+	 * @param bs Right set.
+	 * @param cmp Comparator (both arguments must abide the order).
+	 * @param fm Merge function (for combining equivalent items).
+	 * @param op Set operation.
+	 * @return Result set.
+	 * @since 1.1.0
+	 */
 	public static int[] merge(int a, int bfrom, int bto, int[] bs, IntBinaryOperator cmp, IntBinaryOperator fm, SetOperator op) {
 		if (bto-bfrom<=0) {
 			return op.left ? new int[] { a } : EMPTY_INT;
@@ -1386,6 +1434,19 @@ public final class RJ {
 		}
 	}
 
+	/**
+	 * Applies a set operation upon an <code>long</code> and a set expressed an ordered array of <code>long</code>s.
+	 * 
+	 * @param a Left item.
+	 * @param bfrom Start of the right set (inclusive).
+	 * @param bto End of the right set (exclusive).
+	 * @param bs Right set.
+	 * @param cmp Comparator (both arguments must abide the order).
+	 * @param fm Merge function (for combining equivalent items).
+	 * @param op Set operation.
+	 * @return Result set.
+	 * @since 1.1.0
+	 */
 	public static long[] merge(long a, int bfrom, int bto,long[] bs, LongToIntBinaryOperator cmp, LongBinaryOperator fm, SetOperator op) {
 		if (bto-bfrom<=0) {
 			return op.left ? new long[] { a } : EMPTY_LONG;
@@ -1427,6 +1488,21 @@ public final class RJ {
 		}
 	}
 	
+	/**
+	 * Applies a set operation upon an object and a set expressed an ordered array of objects.
+	 * 
+	 * @param <T> Item type.
+	 * @param rc Item type.
+	 * @param a Left item.
+	 * @param bfrom Start of the right set (inclusive).
+	 * @param bto End of the right set (exclusive).
+	 * @param bs Right set.
+	 * @param cmp Comparator (both arguments must abide the order).
+	 * @param fm Merge function (for combining equivalent items).
+	 * @param op Set operation.
+	 * @return Result set.
+	 * @since 1.1.0
+	 */
 	@SuppressWarnings("unchecked")
 	public static <T> T[] merge(Class<? extends T> rc, T a, int bfrom, int bto, T[] bs, Comparator<T> cmp, BinaryOperator<T> fm, SetOperator op) {
 		if (bto-bfrom<=0) {
@@ -1471,14 +1547,55 @@ public final class RJ {
 
 	/* MERGE/BINARY/MANY-ONE */
 
+	/**
+	 * Applies a set operation upon an <code>int</code> and a set expressed an ordered array of <code>int</code>s.
+	 * 
+	 * @param afrom Start of the left set (inclusive).
+	 * @param ato End of the left set (exclusive).
+	 * @param as Left set.
+	 * @param b Right item.
+	 * @param cmp Comparator (both arguments must abide the order).
+	 * @param fm Merge function (for combining equivalent items).
+	 * @param op Set operation.
+	 * @return Result set.
+	 * @since 1.1.0
+	 */
 	public static int[] merge(int afrom, int ato, int[] as, int b, IntBinaryOperator cmp, IntBinaryOperator fm, SetOperator op) {
 		return merge(b, afrom, ato, as, cmp, (int va, int vb) -> fm.applyAsInt(vb, va), op.reverse());
 	}
 
+	/**
+	 * Applies a set operation upon an <code>long</code> and a set expressed an ordered array of <code>long</code>s.
+	 * 
+	 * @param afrom Start of the left set (inclusive).
+	 * @param ato End of the left set (exclusive).
+	 * @param as Left set.
+	 * @param b Right item.
+	 * @param cmp Comparator (both arguments must abide the order).
+	 * @param fm Merge function (for combining equivalent items).
+	 * @param op Set operation.
+	 * @return Result set.
+	 * @since 1.1.0
+	 */
 	public static long[] merge(int afrom, int ato, long[] as, long b, LongToIntBinaryOperator cmp, LongBinaryOperator fm, SetOperator op) {
 		return merge(b, afrom, ato, as, cmp, (long va, long vb) -> fm.applyAsLong(vb, va), op.reverse());
 	}
 
+	/**
+	 * Applies a set operation upon an object and a set expressed an ordered array of objects.
+	 * 
+	 * @param <T> Item type.
+	 * @param rc Item type.
+	 * @param afrom Start of the left set (inclusive).
+	 * @param ato End of the left set (exclusive).
+	 * @param as Left set.
+	 * @param b Right item.
+	 * @param cmp Comparator (both arguments must abide the order).
+	 * @param fm Merge function (for combining equivalent items).
+	 * @param op Set operation.
+	 * @return Result set.
+	 * @since 1.1.0
+	 */
 	public static <T> T[] merge(Class<? extends T> rc, int afrom, int ato, T[] as, T b, Comparator<T> cmp, BinaryOperator<T> fm, SetOperator op) {
 		return merge(rc, b, afrom, ato, as, cmp, (T va, T vb) -> fm.apply(vb, va), op.reverse());
 	}
