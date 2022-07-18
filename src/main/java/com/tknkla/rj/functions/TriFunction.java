@@ -33,6 +33,7 @@ package com.tknkla.rj.functions;
  * @param <R> Return type.
  * @since 1.0.0
  */
+@Deprecated
 @FunctionalInterface
 public interface TriFunction<T,U,V,R> {
 

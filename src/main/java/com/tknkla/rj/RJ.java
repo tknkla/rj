@@ -506,6 +506,7 @@ public final class RJ {
 	 * @return An array.
 	 * @since 1.0.0
 	 */
+	@Deprecated
 	public static int[] join(int[] as, int[] bs, int[] cs) {
 		int[] rt = Arrays.copyOf(as, as.length+bs.length+cs.length);
 		System.arraycopy(bs, 0, rt, as.length, bs.length);
@@ -521,6 +522,7 @@ public final class RJ {
 	 * @return An array.
 	 * @since 1.0.0
 	 */
+	@Deprecated
 	public static long[] join(long[] as, long[] bs, long[] cs) {
 		long[] rt = Arrays.copyOf(as, as.length+bs.length+cs.length);
 		System.arraycopy(bs, 0, rt, as.length, bs.length);
@@ -536,6 +538,7 @@ public final class RJ {
 	 * @return An array.
 	 * @since 1.0.0
 	 */
+	@Deprecated
 	public static <T> T[] join(T[] as, T[] bs, T[] cs) {
 		T[] rt = Arrays.copyOf(as, as.length+bs.length+cs.length);
 		System.arraycopy(bs, 0, rt, as.length, bs.length);
