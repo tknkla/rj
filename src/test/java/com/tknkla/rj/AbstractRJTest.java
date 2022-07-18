@@ -229,7 +229,7 @@ public abstract class AbstractRJTest extends TestSupport {
 
 	@Test
 	public void testWrap() {
-		assertArrayEquals(new String[] { "x" }, RJ.wrap("x"));
+		assertArrayEquals(new String[] { "x" }, RJ.wrap(String.class, "x"));
 	}
 
 	@Test

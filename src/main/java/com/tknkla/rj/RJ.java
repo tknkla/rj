@@ -594,7 +594,7 @@ public final class RJ {
 	 */
 	public static <T> T[] order(Class<? extends T> rc, int ln, IntFunction<T> fv, Comparator<T> cmp, BinaryOperator<T> fm) {
 		return execute(0, ln, empty(rc),
-				(int p) -> wrap(fv.apply(p)),
+				(int p) -> wrap(rc, fv.apply(p)),
 				(T[] ra, T[] rb) -> merge(rc, ra, rb, cmp, fm, SetOperator.UNION));
 	}
 	
@@ -651,7 +651,7 @@ public final class RJ {
 	 */
 	public static <T> T[][] groups(Class<? extends T> rc, int ln, IntFunction<T> fv, Comparator<T> ocmp, Comparator<T> icmp) {
 		return order(wrap(rc), ln,
-				(int p) -> wrap(fv.apply(p)),
+				(int p) -> wrap(rc, fv.apply(p)),
 				(T[] a, T[] b) -> ocmp.compare(a[0], b[0]),
 				icmp==null ? RJ::join : (T[] a, T[] b) -> merge(rc, a, b, icmp, (T u, T v) -> u, SetOperator.UNION));
 	}
@@ -709,13 +709,15 @@ public final class RJ {
 	 * @return The sorted array of arrays.
 	 * @since 1.0.0
 	 */
+	@SuppressWarnings("unchecked")
 	public static <T> T[][] groups(Class<? extends T> rc, T[][] src, Comparator<T> ocmp, Comparator<T> icmp) {
+		Class<? extends T[]> wrc = wrap(rc);
 		T[][] ret = join(wrap(rc), src.length, (int p) -> {
 			if (src[p].length<=1) {
-				return wrap(src[p]);
+				return (T[][]) wrap(wrc, src[p]);
 			}
 			T[][] rt = groups(rc, src[p].length, (int q) -> src[p][q], ocmp, icmp);
-			return rt.length==1 ? wrap(src[p]) : rt;
+			return rt.length==1 ? (T[][]) wrap(wrc, src[p]) : rt;
 		});
 		return ret.length==src.length ? src : ret;
 	}
@@ -1164,7 +1166,7 @@ public final class RJ {
 
 			T[][] po = (T[][]) Array.newInstance(rca,2);
 			po[0] = ss;
-			po[1] = wrap(src[pv][sp]);
+			po[1] = wrap(rc, src[pv][sp]);
 
 			po = propagate(rc, po, fg, null, g, null);
 			T[][] nsrc = (T[][]) Array.newInstance(rca,po.length+pv);
@@ -1182,14 +1184,33 @@ public final class RJ {
 	 * Wraps an object with an array (intended for internal use).
 	 * 
 	 * @param <T> Item type.
+	 * @param rc Item type.
 	 * @param v Item.
 	 * @return An array.
-	 * @since 1.0.0
+	 * @since 1.1.0
 	 */
 	@SuppressWarnings("unchecked")
-	public static <T> T[] wrap(T v) {
-		T[] rt = (T[]) Array.newInstance(v.getClass(), 1);
+	public static <T> T[] wrap(Class<? extends T> rc, T v) {
+		T[] rt = (T[]) Array.newInstance(rc, 1);
 		rt[0] = v;
+		return rt;
+	}
+
+	/**
+	 * Wraps a pair of objects with an array (intended for internal use).
+	 * 
+	 * @param <T> Item type.
+	 * @param rc Item type.
+	 * @param a First item.
+	 * @param b Second item.
+	 * @return An array.
+	 * @since 1.1.0
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T> T[] wrap(Class<? extends T> rc, T a, T b) {
+		T[] rt = (T[]) Array.newInstance(rc, 2);
+		rt[0] = a;
+		rt[1] = b;
 		return rt;
 	}
 	
@@ -1215,21 +1236,6 @@ public final class RJ {
 	@SuppressWarnings("unchecked")
 	public static <T> T[] empty(Class<? extends T> rc) {
 		return (T[]) Array.newInstance(rc, 0);
-	}
-
-	@SuppressWarnings("unchecked")
-	public static <T> T[] wrap(Class<? extends T> rc, T o) {
-		T[] rt = (T[]) Array.newInstance(rc, 1);
-		rt[0] = o;
-		return rt;
-	}
-
-	@SuppressWarnings("unchecked")
-	public static <T> T[] wrap(Class<? extends T> rc, T a, T b) {
-		T[] rt = (T[]) Array.newInstance(rc, 2);
-		rt[0] = a;
-		rt[1] = b;
-		return rt;
 	}
 	
 	/* MERGE/ANARY */
