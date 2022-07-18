@@ -123,7 +123,7 @@ public interface ExecutionStrategy {
 	 */
 	static ExecutionStrategy PARALLEL = ((Supplier<ExecutionStrategy>)(() -> {
 		ForkJoinPool cp = ForkJoinPool.commonPool();
-		return new ForkJoinPoolExecutionStrategy(cp, 32 - Integer.numberOfLeadingZeros(cp.getParallelism()), 4);
+		return new ForkJoinPoolExecutionStrategy(cp, 4, 32 - Integer.numberOfLeadingZeros(cp.getParallelism()));
 		})).get();
 	
 	/* EXECUTE/LATCH */
@@ -394,7 +394,7 @@ public interface ExecutionStrategy {
 				? LOCAL
 				: new ForkJoinPoolExecutionStrategy(
 						new ForkJoinPool(1<<concurrency, ForkJoinPool.defaultForkJoinWorkerThreadFactory, null, true),
-						concurrency, workSizeFactor);
+						workSizeFactor, concurrency);
 	}
 	
 }
