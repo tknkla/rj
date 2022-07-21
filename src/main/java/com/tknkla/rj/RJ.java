@@ -1419,7 +1419,7 @@ public final class RJ {
 					int[] ret = new int[bto-bfrom+1];
 					System.arraycopy(bs, bfrom, ret, 0, p-bfrom);
 					System.arraycopy(bs, p, ret, p-bfrom+1, bto-p);
-					ret[p] = a;
+					ret[p-bfrom] = a;
 					return ret;
 				} else {
 					return new int[] { a };
@@ -1473,7 +1473,7 @@ public final class RJ {
 					long[] ret = new long[bto-bfrom+1];
 					System.arraycopy(bs, bfrom, ret, 0, p-bfrom);
 					System.arraycopy(bs, p, ret, p-bfrom+1, bto-p);
-					ret[p] = a;
+					ret[p-bfrom] = a;
 					return ret;
 				} else {
 					return new long[] { a };
@@ -1530,7 +1530,7 @@ public final class RJ {
 					T[] ret = (T[])Array.newInstance(rc, bto-bfrom+1);
 					System.arraycopy(bs, bfrom, ret, 0, p-bfrom);
 					System.arraycopy(bs, p, ret, p-bfrom+1, bto-p);
-					ret[p] = a;
+					ret[p-bfrom] = a;
 					return ret;
 				} else {
 					return wrap(rc, a);
