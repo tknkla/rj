@@ -2,6 +2,7 @@ Changelog
 =========
 
 **1.1.0** (x.x.2023)
+- Added support for anary group operators
 - Special cases for merge (one-to-one and many-to-one).
 - Minor performance improvements for parallel merge.
 - All trinary operations marked as deprecated

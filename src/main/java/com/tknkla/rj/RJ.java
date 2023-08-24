@@ -745,10 +745,10 @@ public final class RJ {
 			int[][] nsrc = groups(src, (int a, int b) -> {
 				for (int i=_src.length-1; i>=0; i--) {
 					int _i = i;
-					int rt = g.signum(execute(0, _src[i].length, g.identityAsInt(), (int p) -> {
+					int rt = g.signum(g.applyAsInt(0, _src[i].length, (int p) -> {
 						int c = _src[_i][p];
 						return g.cancelAsInt(fg.applyAsInt(a, c), fg.applyAsInt(b, c));
-					}, g::applyAsInt));
+					}));
 					if (rt!=0) {
 						return rt;
 					}
@@ -781,10 +781,10 @@ public final class RJ {
 			long[][] nsrc = groups(src, (long a, long b) -> {
 				for (int i=_src.length-1; i>=0; i--) {
 					int _i = i;
-					int rt = g.signum(execute(0, _src[i].length, g.identityAsLong(), (int p) -> {
+					int rt = g.signum(g.applyAsLong(0, _src[i].length, (int p) -> {
 						long c = _src[_i][p];
 						return g.cancelAsLong(fg.applyAsLong(a, c), fg.applyAsLong(b, c));
-					}, g::applyAsLong));
+					}));
 					if (rt!=0) {
 						return rt;
 					}
@@ -817,16 +817,15 @@ public final class RJ {
 	 * @since 1.0.0
 	 */
 	public static <T,E> T[][] propagate(Class<? extends T> rc, T[][] src, BiFunction<T,T,E> fg, Comparator<T> cmp, GroupOperator<E> g, Predicate<T[][]> fh) {
-		E id = g.identity();
 		while (fh==null || fh.test(src)) {
 			T[][] _src = src;
 			T[][] nsrc = groups(rc, src, (T a, T b) -> {
 				for (int i=_src.length-1; i>=0; i--) {
 					int _i = i;
-					int rt = g.signum(execute(0, _src[i].length, id, (int p) -> {
+					int rt = g.signum(g.apply(0, _src[i].length, (int p) -> {
 						T c = _src[_i][p];
 						return g.cancel(fg.apply(a, c), fg.apply(b, c));
-					}, g::apply));
+					}));
 					if (rt!=0) {
 						return rt;
 					}

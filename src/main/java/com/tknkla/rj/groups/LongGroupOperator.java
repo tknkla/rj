@@ -22,6 +22,8 @@
  */
 package com.tknkla.rj.groups;
 
+import java.util.function.IntToLongFunction;
+
 import com.tknkla.rj.RJ;
 import com.tknkla.rj.functions.LongToIntBinaryOperator;
 
@@ -71,7 +73,7 @@ public interface LongGroupOperator {
 	long identityAsLong();
 
 	/**
-	 * Applies the (commutative) group operation. 
+	 * Applies the (commutative) group operation (binary).
 	 * @param a Left element.
 	 * @param b Right element.
 	 * @return Result of the group operation.
@@ -96,4 +98,16 @@ public interface LongGroupOperator {
 	 */
 	int signum(long v);
 	
+	/**
+	 * Applies the (commutative) group operator (anary).
+	 * @param from Index of the first element (inclusive).
+	 * @param to Index of the last element (exclusive).
+	 * @param fn Function to supply the nth element.
+	 * @return Result of the group operation.
+	 * @since 1.1.0
+	 */
+	default long applyAsLong(int from, int to, IntToLongFunction fn) {
+		return RJ.execute(from, to, identityAsLong(), fn, this::applyAsLong);
+	}
+
 }
