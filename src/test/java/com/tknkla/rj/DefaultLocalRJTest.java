@@ -24,8 +24,9 @@ package com.tknkla.rj;
 
 public class DefaultLocalRJTest extends AbstractRJTest {
 
-	public DefaultLocalRJTest() {
-		super(ExecutionStrategy.LOCAL);
+	@Override
+	protected ExecutionStrategy create() {
+		return ExecutionStrategy.LOCAL;
 	}
 
 }

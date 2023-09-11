@@ -20,23 +20,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.tknkla.rj.functions;
+package com.tknkla.rj;
 
-/**
- * A functional interface which takes three objects as arguments and returns an object.
- * 
- * @author Timo Santasalo
- *
- * @param <T> Type of the first argument.
- * @param <U> Type of the second argument.
- * @param <V> Type of the third argument.
- * @param <R> Return type.
- * @since 1.0.0
- */
-@Deprecated
-@FunctionalInterface
-public interface TriFunction<T,U,V,R> {
+import java.util.function.Consumer;
 
-	R apply(T a, U b, V c);
-	
+public class SimulatedParallel1RJTest extends AbstractSimulatedRJTest {
+
+	@Override
+	public void execute(Consumer<Runnable> fn) {
+		boolean[] rt = new boolean[1];
+		fn.accept(() -> rt[0] = true);
+		assertTrue(rt[0]);
+	}
+
+	@Override
+	public void queue(Consumer<Runnable> a, Consumer<Runnable> b, Runnable h) {
+		boolean[] rt = new boolean[2];
+		if (rnd.nextBoolean()) {
+			a.accept(() -> rt[0] = true);
+			b.accept(() -> rt[1] = true);
+		} else {
+			a.accept(() -> rt[1] = true);
+			b.accept(() -> rt[0] = true);
+		}
+		assertTrue(rt[0]);
+		assertTrue(rt[1]);
+		h.run();
+	}
+
 }

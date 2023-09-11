@@ -119,7 +119,28 @@
 		<li><a href="com/tknkla/rj/RJ.html#merge(java.lang.Class,int,java.util.function.IntFunction,java.util.Comparator,java.util.function.BinaryOperator,com.tknkla.rj.SetOperator)"><code>merge(Class, int, IntFunction, Comparator, BinaryOperator, SetOperator)</code></a></li>
 	</ul>
 
-	<h3>Binary set operations for ordered arrays:</h3>
+	<h3>Binary set operations (one-to-one) for ordered arrays:</h3>
+	<ul>
+		<li><a href="com/tknkla/rj/RJ.html#merge(int,int,java.util.function.IntBinaryOperator,java.util.function.IntBinaryOperator,com.tknkla.rj.SetOperator)"><code>merge(int, int, IntBinaryOperator, IntBinaryOperator, SetOperator)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#merge(long,long,com.tknkla.rj.functions.LongToIntBinaryOperator,java.util.function.LongBinaryOperator,com.tknkla.rj.SetOperator)"><code>merge(long, long, LongToIntBinaryOperator, LongBinaryOperator, SetOperator)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#merge(java.lang.Class,T,T,java.util.Comparator,java.util.function.BinaryOperator,com.tknkla.rj.SetOperator)"><code>merge(Class, Object, Object, Comparator, BinaryOperator, SetOperator)</code></a></li>
+	</ul>
+
+	<h3>Binary set operations (one-to-many) for ordered arrays:</h3>
+	<ul>
+		<li><a href="com/tknkla/rj/RJ.html#merge(int,int,int,int%5B%5D,java.util.function.IntBinaryOperator,java.util.function.IntBinaryOperator,com.tknkla.rj.SetOperator)"><code>merge(int, int, int, int[], IntBinaryOperator, IntBinaryOperator, SetOperator)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#merge(long,int,int,long%5B%5D,com.tknkla.rj.functions.LongToIntBinaryOperator,java.util.function.LongBinaryOperator,com.tknkla.rj.SetOperator)"><code>merge(long, int, int, long[], LongToIntBinaryOperator, LongBinaryOperator, SetOperator)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#merge(java.lang.Class,T,int,int,T%5B%5D,java.util.Comparator,java.util.function.BinaryOperator,com.tknkla.rj.SetOperator)"><code>merge(Class, Object, int, int, Object[], Comparator, BinaryOperator, SetOperator)</code></a></li>
+	</ul>
+
+	<h3>Binary set operations (many-to-one) for ordered arrays:</h3>
+	<ul>
+		<li><a href="com/tknkla/rj/RJ.html#merge(int,int,int%5B%5D,int,java.util.function.IntBinaryOperator,java.util.function.IntBinaryOperator,com.tknkla.rj.SetOperator)"><code>merge(int, int, int[], int, IntBinaryOperator, IntBinaryOperator, SetOperator)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#merge(int,int,long%5B%5D,long,com.tknkla.rj.functions.LongToIntBinaryOperator,java.util.function.LongBinaryOperator,com.tknkla.rj.SetOperator)"><code>merge(int, int, long[], long, LongToIntBinaryOperator, LongBinaryOperator, SetOperator)</code></a></li>
+		<li><a href="com/tknkla/rj/RJ.html#merge(java.lang.Class,int,int,T%5B%5D,T,java.util.Comparator,java.util.function.BinaryOperator,com.tknkla.rj.SetOperator)"><code>merge(Class, int, int, Object[], Object, Comparator, BinaryOperator, SetOperator)</code></a></li>
+	</ul>
+
+	<h3>Binary set operations (many-to-many) for ordered arrays:</h3>
 	<ul>
 		<li><a href="com/tknkla/rj/RJ.html#merge(int%5B%5D,int%5B%5D,java.util.function.IntBinaryOperator,java.util.function.IntBinaryOperator,com.tknkla.rj.SetOperator)"><code>merge(int[], int[], IntBinaryOperator, IntBinaryOperator, SetOperator)</code></a></li>
 		<li><a href="com/tknkla/rj/RJ.html#merge(long%5B%5D,long%5B%5D,com.tknkla.rj.functions.LongToIntBinaryOperator,java.util.function.LongBinaryOperator,com.tknkla.rj.SetOperator)"><code>merge(long[], long[], LongToIntBinaryOperator, LongBinaryOperator, SetOperator)</code></a></li>
@@ -154,7 +175,7 @@
 		<li><a href="com/tknkla/rj/RJ.html#join(T%5B%5D,T%5B%5D)"><code>join(Object[], Object[])</code></a></li>
 	</ul>
 
-	<h3>Trinary array concatenation:</h3>
+	<h3>(DEPRECATED) Trinary array concatenation:</h3>
 	<ul>
 		<li><a href="com/tknkla/rj/RJ.html#join(int%5B%5D,int%5B%5D,int%5B%5D)"><code>join(int[], int[], int[])</code></a></li>
 		<li><a href="com/tknkla/rj/RJ.html#join(long%5B%5D,long%5B%5D,long%5B%5D)"><code>join(long[], long[], long[])</code></a></li>

@@ -131,10 +131,10 @@ public abstract class AbstractOrderAlgorithm {
 			int[][] nsrc = RJ.groups(src, (int a, int b) -> {
 				for (int i=_src.length-1; i>=0; i--) {
 					int _i = i;
-					int rt = g.signum(RJ.execute(0, _src[i].length, g.identityAsInt(), (int p) -> {
+					int rt = g.signum(g.applyAsInt(0, _src[i].length, (int p) -> {
 						int c = _src[_i][p];
 						return g.cancelAsInt(fg.applyAsInt(a, c), fg.applyAsInt(b, c));
-					}, g::applyAsInt));
+					}));
 					if (rt!=0) {
 						return rt;
 					}

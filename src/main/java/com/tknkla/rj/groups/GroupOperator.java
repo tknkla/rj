@@ -23,6 +23,7 @@
 package com.tknkla.rj.groups;
 
 import java.math.BigInteger;
+import java.util.function.IntFunction;
 
 import com.tknkla.rj.RJ;
 
@@ -74,7 +75,7 @@ public interface GroupOperator<T> {
 	T identity();
 
 	/**
-	 * Applies the (commutative) group operation. 
+	 * Applies the (commutative) group operation (binary).
 	 * @param a Left element.
 	 * @param b Right element.
 	 * @return Result of the group operation.
@@ -98,5 +99,17 @@ public interface GroupOperator<T> {
 	 * @since 1.0.0
 	 */
 	int signum(T v);
+	
+	/**
+	 * Applies the (commutative) group operator (anary).
+	 * @param from Index of the first element (inclusive).
+	 * @param to Index of the last element (exclusive).
+	 * @param fn Function to supply the nth element.
+	 * @return Result of the group operation.
+	 * @since 1.1.0
+	 */
+	default T apply(int from, int to, IntFunction<T> fn) {
+		return RJ.execute(from, to, identity(), fn, this::apply);
+	}
 	
 }

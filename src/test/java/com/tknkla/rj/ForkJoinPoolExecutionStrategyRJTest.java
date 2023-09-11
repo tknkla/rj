@@ -22,10 +22,15 @@
  */
 package com.tknkla.rj;
 
-public class ParallelRJTest extends AbstractRJTest {
+import java.util.concurrent.ForkJoinPool;
 
-	public ParallelRJTest() {
-		super(ExecutionStrategy.create(8, 1));
+public class ForkJoinPoolExecutionStrategyRJTest extends AbstractRJTest {
+	
+	private final ExecutionStrategy xs = new ForkJoinPoolExecutionStrategy(new ForkJoinPool(2), 1, 1);
+
+	@Override
+	protected ExecutionStrategy create() {
+		return xs;
 	}
 
 }

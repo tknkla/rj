@@ -24,8 +24,9 @@ package com.tknkla.rj;
 
 public class DefaultParallelRJTest extends AbstractRJTest {
 
-	public DefaultParallelRJTest() {
-		super(ExecutionStrategy.PARALLEL);
+	@Override
+	protected ExecutionStrategy create() {
+		return ExecutionStrategy.PARALLEL;
 	}
 
 }

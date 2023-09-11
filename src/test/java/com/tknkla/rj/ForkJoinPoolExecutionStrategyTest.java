@@ -27,7 +27,7 @@ import java.util.concurrent.ForkJoinPool;
 public class ForkJoinPoolExecutionStrategyTest extends AbstractExecutionStrategyTest {
 
 	public ForkJoinPoolExecutionStrategyTest() {
-		super(new ForkJoinPoolExecutionStrategy(new ForkJoinPool(2), (int a, int b) -> a>1));
+		super(new ForkJoinPoolExecutionStrategy(new ForkJoinPool(2), 1, 1));
 	}
 
 }

@@ -20,23 +20,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.tknkla.rj.functions;
+package com.tknkla.rj;
 
-/**
- * A functional interface which takes three objects as arguments and returns an object.
- * 
- * @author Timo Santasalo
- *
- * @param <T> Type of the first argument.
- * @param <U> Type of the second argument.
- * @param <V> Type of the third argument.
- * @param <R> Return type.
- * @since 1.0.0
- */
-@Deprecated
-@FunctionalInterface
-public interface TriFunction<T,U,V,R> {
+import java.util.Random;
 
-	R apply(T a, U b, V c);
+import org.junit.Before;
+
+public abstract class AbstractSimulatedRJTest extends AbstractRJTest implements ExecutionStrategy {
+
+	protected final Random rnd = new Random();
 	
+	@Override
+	protected ExecutionStrategy create() {
+		return this;
+	}
+
+	@Override
+	public boolean fork(int taskSize) {
+		return taskSize>0;
+	}
+	
+	@Before
+	public void before() {
+		super.before();
+		rnd.setSeed(0);
+	}
+
 }

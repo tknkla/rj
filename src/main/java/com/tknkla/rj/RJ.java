@@ -143,12 +143,13 @@ public final class RJ {
 	}
 	
 	private static void _execute(int from, int to, IntConsumer fn, Runnable fh) {
-		if (xs.fork(to-from)) {
+		int ln = to-from;
+		if (ln>1 && xs.fork(ln)) {
 			int h = (from+to)>>1;
 			xs.queue((Runnable nh) -> _execute(from, h, fn, nh),
 					(Runnable nh) -> _execute(h, to, fn, nh),
 					fh);
-		} else {
+		} else if (ln>0) {
 			try {
 				_execute(from, to, fn);
 			} finally {
@@ -184,7 +185,11 @@ public final class RJ {
 	}
 
 	private static void _execute(int from, int to, int id, IntUnaryOperator fv, IntBinaryOperator fm, IntConsumer fh) {
-		if (xs.fork(to-from)) {
+		if (from>=to) {
+			fh.accept(id);
+		} else if (from+1==to) {
+			fh.accept(fv.applyAsInt(from));
+		} else if (xs.fork(to-from)) {
 			int h = (from+to)>>1;
 			xs.queue((IntConsumer nh) -> _execute(from, h, id, fv, fm, nh),
 					(IntConsumer nh) -> _execute(h, to, id, fv, fm, nh),
@@ -221,7 +226,11 @@ public final class RJ {
 	}
 
 	private static void _execute(int from, int to, long id, IntToLongFunction fv, LongBinaryOperator fm, LongConsumer fh) {
-		if (xs.fork(to-from)) {
+		if (from>=to) {
+			fh.accept(id);
+		} else if (from+1==to) {
+			fh.accept(fv.applyAsLong(from));
+		} else if (xs.fork(to-from)) {
 			int h = (from+to)>>1;
 			xs.queue((LongConsumer nh) -> _execute(from, h, id, fv, fm, nh),
 					(LongConsumer nh) -> _execute(h, to, id, fv, fm, nh),
@@ -273,7 +282,11 @@ public final class RJ {
 	}
 
 	private static <T> void _execute(int from, int to, T id, IntFunction<T> fv, BinaryOperator<T> fm, Consumer<T> fh) {
-		if (xs.fork(to-from)) {
+		if (from>=to) {
+			fh.accept(id);
+		} else if (from+1==to) {
+			fh.accept(fv.apply(from));
+		} else if (xs.fork(to-from)) {
 			int h = (from+to)>>1;
 			xs.queue((Consumer<T> nh) -> _execute(from, h, id, fv, fm, nh),
 					(Consumer<T> nh) -> _execute(h, to, id, fv, fm, nh),
@@ -493,6 +506,7 @@ public final class RJ {
 	 * @return An array.
 	 * @since 1.0.0
 	 */
+	@Deprecated
 	public static int[] join(int[] as, int[] bs, int[] cs) {
 		int[] rt = Arrays.copyOf(as, as.length+bs.length+cs.length);
 		System.arraycopy(bs, 0, rt, as.length, bs.length);
@@ -508,6 +522,7 @@ public final class RJ {
 	 * @return An array.
 	 * @since 1.0.0
 	 */
+	@Deprecated
 	public static long[] join(long[] as, long[] bs, long[] cs) {
 		long[] rt = Arrays.copyOf(as, as.length+bs.length+cs.length);
 		System.arraycopy(bs, 0, rt, as.length, bs.length);
@@ -523,6 +538,7 @@ public final class RJ {
 	 * @return An array.
 	 * @since 1.0.0
 	 */
+	@Deprecated
 	public static <T> T[] join(T[] as, T[] bs, T[] cs) {
 		T[] rt = Arrays.copyOf(as, as.length+bs.length+cs.length);
 		System.arraycopy(bs, 0, rt, as.length, bs.length);
@@ -581,7 +597,7 @@ public final class RJ {
 	 */
 	public static <T> T[] order(Class<? extends T> rc, int ln, IntFunction<T> fv, Comparator<T> cmp, BinaryOperator<T> fm) {
 		return execute(0, ln, empty(rc),
-				(int p) -> wrap(fv.apply(p)),
+				(int p) -> wrap(rc, fv.apply(p)),
 				(T[] ra, T[] rb) -> merge(rc, ra, rb, cmp, fm, SetOperator.UNION));
 	}
 	
@@ -638,7 +654,7 @@ public final class RJ {
 	 */
 	public static <T> T[][] groups(Class<? extends T> rc, int ln, IntFunction<T> fv, Comparator<T> ocmp, Comparator<T> icmp) {
 		return order(wrap(rc), ln,
-				(int p) -> wrap(fv.apply(p)),
+				(int p) -> wrap(rc, fv.apply(p)),
 				(T[] a, T[] b) -> ocmp.compare(a[0], b[0]),
 				icmp==null ? RJ::join : (T[] a, T[] b) -> merge(rc, a, b, icmp, (T u, T v) -> u, SetOperator.UNION));
 	}
@@ -696,13 +712,15 @@ public final class RJ {
 	 * @return The sorted array of arrays.
 	 * @since 1.0.0
 	 */
+	@SuppressWarnings("unchecked")
 	public static <T> T[][] groups(Class<? extends T> rc, T[][] src, Comparator<T> ocmp, Comparator<T> icmp) {
+		Class<? extends T[]> wrc = wrap(rc);
 		T[][] ret = join(wrap(rc), src.length, (int p) -> {
 			if (src[p].length<=1) {
-				return wrap(src[p]);
+				return (T[][]) wrap(wrc, src[p]);
 			}
 			T[][] rt = groups(rc, src[p].length, (int q) -> src[p][q], ocmp, icmp);
-			return rt.length==1 ? wrap(src[p]) : rt;
+			return rt.length==1 ? (T[][]) wrap(wrc, src[p]) : rt;
 		});
 		return ret.length==src.length ? src : ret;
 	}
@@ -727,10 +745,10 @@ public final class RJ {
 			int[][] nsrc = groups(src, (int a, int b) -> {
 				for (int i=_src.length-1; i>=0; i--) {
 					int _i = i;
-					int rt = g.signum(execute(0, _src[i].length, g.identityAsInt(), (int p) -> {
+					int rt = g.signum(g.applyAsInt(0, _src[i].length, (int p) -> {
 						int c = _src[_i][p];
 						return g.cancelAsInt(fg.applyAsInt(a, c), fg.applyAsInt(b, c));
-					}, g::applyAsInt));
+					}));
 					if (rt!=0) {
 						return rt;
 					}
@@ -763,10 +781,10 @@ public final class RJ {
 			long[][] nsrc = groups(src, (long a, long b) -> {
 				for (int i=_src.length-1; i>=0; i--) {
 					int _i = i;
-					int rt = g.signum(execute(0, _src[i].length, g.identityAsLong(), (int p) -> {
+					int rt = g.signum(g.applyAsLong(0, _src[i].length, (int p) -> {
 						long c = _src[_i][p];
 						return g.cancelAsLong(fg.applyAsLong(a, c), fg.applyAsLong(b, c));
-					}, g::applyAsLong));
+					}));
 					if (rt!=0) {
 						return rt;
 					}
@@ -799,16 +817,15 @@ public final class RJ {
 	 * @since 1.0.0
 	 */
 	public static <T,E> T[][] propagate(Class<? extends T> rc, T[][] src, BiFunction<T,T,E> fg, Comparator<T> cmp, GroupOperator<E> g, Predicate<T[][]> fh) {
-		E id = g.identity();
 		while (fh==null || fh.test(src)) {
 			T[][] _src = src;
 			T[][] nsrc = groups(rc, src, (T a, T b) -> {
 				for (int i=_src.length-1; i>=0; i--) {
 					int _i = i;
-					int rt = g.signum(execute(0, _src[i].length, id, (int p) -> {
+					int rt = g.signum(g.apply(0, _src[i].length, (int p) -> {
 						T c = _src[_i][p];
 						return g.cancel(fg.apply(a, c), fg.apply(b, c));
-					}, g::apply));
+					}));
 					if (rt!=0) {
 						return rt;
 					}
@@ -1151,7 +1168,7 @@ public final class RJ {
 
 			T[][] po = (T[][]) Array.newInstance(rca,2);
 			po[0] = ss;
-			po[1] = wrap(src[pv][sp]);
+			po[1] = wrap(rc, src[pv][sp]);
 
 			po = propagate(rc, po, fg, null, g, null);
 			T[][] nsrc = (T[][]) Array.newInstance(rca,po.length+pv);
@@ -1169,14 +1186,33 @@ public final class RJ {
 	 * Wraps an object with an array (intended for internal use).
 	 * 
 	 * @param <T> Item type.
+	 * @param rc Item type.
 	 * @param v Item.
 	 * @return An array.
-	 * @since 1.0.0
+	 * @since 1.1.0
 	 */
 	@SuppressWarnings("unchecked")
-	public static <T> T[] wrap(T v) {
-		T[] rt = (T[]) Array.newInstance(v.getClass(), 1);
+	public static <T> T[] wrap(Class<? extends T> rc, T v) {
+		T[] rt = (T[]) Array.newInstance(rc, 1);
 		rt[0] = v;
+		return rt;
+	}
+
+	/**
+	 * Wraps a pair of objects with an array (intended for internal use).
+	 * 
+	 * @param <T> Item type.
+	 * @param rc Item type.
+	 * @param a First item.
+	 * @param b Second item.
+	 * @return An array.
+	 * @since 1.1.0
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T> T[] wrap(Class<? extends T> rc, T a, T b) {
+		T[] rt = (T[]) Array.newInstance(rc, 2);
+		rt[0] = a;
+		rt[1] = b;
 		return rt;
 	}
 	
@@ -1277,7 +1313,302 @@ public final class RJ {
 				: execute(0, n, empty(rc), fn, (T[] a, T[] b) -> merge(rc, a, b, cmp, fm, op));
 	}
 
-	/* MERGE/BINARY */
+	/* MERGE/BINARY/ONE-ONE */
+	
+	/**
+	 * Applies a set operation upon a pair of <code>int</code>s.
+	 * 
+	 * @param a Left item.
+	 * @param b Right item.
+	 * @param cmp Comparator (both arguments must abide the order).
+	 * @param fm Merge function (for combining equivalent items).
+	 * @param op Set operation.
+	 * @return Result set.
+	 * @since 1.1.0
+	 */
+	public static int[] merge(int a, int b, IntBinaryOperator cmp, IntBinaryOperator fm, SetOperator op) {
+		if (op==SetOperator.EMPTY) {
+			return EMPTY_INT;
+		}
+		int cv = cmp.applyAsInt(a, b);
+		return cv==0 ? op.both ? new int[] { fm.applyAsInt(a, b) } : EMPTY_INT
+				: op.left && op.right ? cv<0 ? new int[] { a, b } : new int[] { b, a }
+					: op.left ? new int[] { a }
+					: op.right ? new int[] { b }
+					: EMPTY_INT;
+	}
+
+	/**
+	 * Applies a set operation upon a pair of <code>long</code>s.
+	 * 
+	 * @param a Left item.
+	 * @param b Right item.
+	 * @param cmp Comparator (both arguments must abide the order).
+	 * @param fm Merge function (for combining equivalent items).
+	 * @param op Set operation.
+	 * @return Result set.
+	 * @since 1.1.0
+	 */
+	public static long[] merge(long a, long b, LongToIntBinaryOperator cmp, LongBinaryOperator fm, SetOperator op) {
+		if (op==SetOperator.EMPTY) {
+			return RJ.EMPTY_LONG;
+		}
+		int cv = cmp.applyAsInt(a, b);
+		return cv==0 ? op.both ? new long[] { fm.applyAsLong(a, b) } : EMPTY_LONG
+				: op.left && op.right ? cv<0 ? new long[] { a, b } : new long[] { b, a }
+					: op.left ? new long[] { a }
+					: op.right ? new long[] { b }
+					: RJ.EMPTY_LONG;
+	}
+	
+	/**
+	 * Applies a set operation upon a pair of objects.
+	 * 
+	 * @param <T> Item type.
+	 * @param rc Item type.
+	 * @param a Left item.
+	 * @param b Right item.
+	 * @param cmp Comparator (both arguments must abide the order).
+	 * @param fm Merge function (for combining equivalent items).
+	 * @param op Set operation.
+	 * @return Result set.
+	 * @since 1.1.0
+	 */
+	public static <T> T[] merge(Class<? extends T> rc, T a, T b, Comparator<T> cmp, BinaryOperator<T> fm, SetOperator op) {
+		if (op==SetOperator.EMPTY) {
+			return RJ.empty(rc);
+		}
+		int cv = cmp.compare(a, b);
+		return cv==0 ? op.both ? wrap(rc, fm.apply(a, b)) : RJ.empty(rc)
+				: op.left && op.right ? cv<0 ? wrap(rc, a, b) : wrap(rc, b, a)
+					: op.left ? wrap(rc, a)
+					: op.right ? wrap(rc, b)
+					: RJ.empty(rc);
+	}
+
+	/* MERGE/BINARY/ONE-MANY */
+
+	/**
+	 * Applies a set operation upon an <code>int</code> and a set expressed an ordered array of <code>int</code>s.
+	 * 
+	 * @param a Left item.
+	 * @param bfrom Start of the right set (inclusive).
+	 * @param bto End of the right set (exclusive).
+	 * @param bs Right set.
+	 * @param cmp Comparator (both arguments must abide the order).
+	 * @param fm Merge function (for combining equivalent items).
+	 * @param op Set operation.
+	 * @return Result set.
+	 * @since 1.1.0
+	 */
+	public static int[] merge(int a, int bfrom, int bto, int[] bs, IntBinaryOperator cmp, IntBinaryOperator fm, SetOperator op) {
+		if (bto-bfrom<=0) {
+			return op.left ? new int[] { a } : EMPTY_INT;
+		} else if (bto-bfrom==1) {
+			return merge(a, bs[bfrom], cmp, fm, op);
+		} else if (op==SetOperator.EMPTY) {
+			return EMPTY_INT;
+		}
+		
+		int p = search(bfrom, bto, (int r) -> cmp.applyAsInt(bs[r], a));
+		if (p<0) {
+			p = ~p;
+			if (op.left) {
+				if (op.right) {
+					int[] ret = new int[bto-bfrom+1];
+					System.arraycopy(bs, bfrom, ret, 0, p-bfrom);
+					System.arraycopy(bs, p, ret, p-bfrom+1, bto-p);
+					ret[p-bfrom] = a;
+					return ret;
+				} else {
+					return new int[] { a };
+				}
+			} else {
+				return op.right ? Arrays.copyOfRange(bs, bfrom, bto) : EMPTY_INT;
+			}
+		} else if (op.both) {
+			if (op.right) {
+				int[] ret = Arrays.copyOfRange(bs, bfrom, bto);
+				ret[p-bfrom] = fm.applyAsInt(a, bs[p]);
+				return ret;
+			} else {
+				return new int[] { fm.applyAsInt(a, bs[p]) };
+			}
+		} else {
+			int[] ret = new int[bto-bfrom-1];
+			System.arraycopy(bs, bfrom, ret, 0, p-bfrom);
+			System.arraycopy(bs, p+1, ret, p-bfrom, bto-p-1);
+			return ret;
+		}
+	}
+
+	/**
+	 * Applies a set operation upon an <code>long</code> and a set expressed an ordered array of <code>long</code>s.
+	 * 
+	 * @param a Left item.
+	 * @param bfrom Start of the right set (inclusive).
+	 * @param bto End of the right set (exclusive).
+	 * @param bs Right set.
+	 * @param cmp Comparator (both arguments must abide the order).
+	 * @param fm Merge function (for combining equivalent items).
+	 * @param op Set operation.
+	 * @return Result set.
+	 * @since 1.1.0
+	 */
+	public static long[] merge(long a, int bfrom, int bto,long[] bs, LongToIntBinaryOperator cmp, LongBinaryOperator fm, SetOperator op) {
+		if (bto-bfrom<=0) {
+			return op.left ? new long[] { a } : EMPTY_LONG;
+		} else if (bto-bfrom==1) {
+			return merge(a, bs[bfrom], cmp, fm, op);
+		} else if (op==SetOperator.EMPTY) {
+			return EMPTY_LONG;
+		}
+		
+		int p = search(bfrom, bto, (int r) -> cmp.applyAsInt(bs[r], a));
+		if (p<0) {
+			p = ~p;
+			if (op.left) {
+				if (op.right) {
+					long[] ret = new long[bto-bfrom+1];
+					System.arraycopy(bs, bfrom, ret, 0, p-bfrom);
+					System.arraycopy(bs, p, ret, p-bfrom+1, bto-p);
+					ret[p-bfrom] = a;
+					return ret;
+				} else {
+					return new long[] { a };
+				}
+			} else {
+				return op.right ? Arrays.copyOfRange(bs, bfrom, bto) : EMPTY_LONG;
+			}
+		} else if (op.both) {
+			if (op.right) {
+				long[] ret = Arrays.copyOfRange(bs, bfrom, bto);
+				ret[p-bfrom] = fm.applyAsLong(a, bs[p]);
+				return ret;
+			} else {
+				return new long[] { fm.applyAsLong(a, bs[p]) };
+			}
+		} else {
+			long[] ret = new long[bto-bfrom-1];
+			System.arraycopy(bs, bfrom, ret, 0, p-bfrom);
+			System.arraycopy(bs, p+1, ret, p-bfrom, bto-p-1);
+			return ret;
+		}
+	}
+	
+	/**
+	 * Applies a set operation upon an object and a set expressed an ordered array of objects.
+	 * 
+	 * @param <T> Item type.
+	 * @param rc Item type.
+	 * @param a Left item.
+	 * @param bfrom Start of the right set (inclusive).
+	 * @param bto End of the right set (exclusive).
+	 * @param bs Right set.
+	 * @param cmp Comparator (both arguments must abide the order).
+	 * @param fm Merge function (for combining equivalent items).
+	 * @param op Set operation.
+	 * @return Result set.
+	 * @since 1.1.0
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T> T[] merge(Class<? extends T> rc, T a, int bfrom, int bto, T[] bs, Comparator<T> cmp, BinaryOperator<T> fm, SetOperator op) {
+		if (bto-bfrom<=0) {
+			return op.left ? wrap(rc, a) : empty(rc);
+		} else if (bto-bfrom==1) {
+			return merge(rc, a, bs[bfrom], cmp, fm, op);
+		} else if (op==SetOperator.EMPTY) {
+			return empty(rc);
+		}
+		
+		int p = search(bfrom, bto, (int r) -> cmp.compare(bs[r], a));
+		if (p<0) {
+			p = ~p;
+			if (op.left) {
+				if (op.right) {
+					T[] ret = (T[])Array.newInstance(rc, bto-bfrom+1);
+					System.arraycopy(bs, bfrom, ret, 0, p-bfrom);
+					System.arraycopy(bs, p, ret, p-bfrom+1, bto-p);
+					ret[p-bfrom] = a;
+					return ret;
+				} else {
+					return wrap(rc, a);
+				}
+			} else {
+				return op.right ? Arrays.copyOfRange(bs, bfrom, bto) : empty(rc);
+			}
+		} else if (op.both) {
+			if (op.right) {
+				T[] ret = Arrays.copyOfRange(bs, bfrom, bto);
+				ret[p-bfrom] = fm.apply(a, bs[p]);
+				return ret;
+			} else {
+				return wrap(rc, fm.apply(a, bs[p]));
+			}
+		} else {
+			T[] ret = (T[])Array.newInstance(rc, bto-bfrom-1);
+			System.arraycopy(bs, bfrom, ret, 0, p-bfrom);
+			System.arraycopy(bs, p+1, ret, p-bfrom, bto-p-1);
+			return ret;
+		}
+	}
+
+	/* MERGE/BINARY/MANY-ONE */
+
+	/**
+	 * Applies a set operation upon an <code>int</code> and a set expressed an ordered array of <code>int</code>s.
+	 * 
+	 * @param afrom Start of the left set (inclusive).
+	 * @param ato End of the left set (exclusive).
+	 * @param as Left set.
+	 * @param b Right item.
+	 * @param cmp Comparator (both arguments must abide the order).
+	 * @param fm Merge function (for combining equivalent items).
+	 * @param op Set operation.
+	 * @return Result set.
+	 * @since 1.1.0
+	 */
+	public static int[] merge(int afrom, int ato, int[] as, int b, IntBinaryOperator cmp, IntBinaryOperator fm, SetOperator op) {
+		return merge(b, afrom, ato, as, cmp, (int va, int vb) -> fm.applyAsInt(vb, va), op.reverse());
+	}
+
+	/**
+	 * Applies a set operation upon an <code>long</code> and a set expressed an ordered array of <code>long</code>s.
+	 * 
+	 * @param afrom Start of the left set (inclusive).
+	 * @param ato End of the left set (exclusive).
+	 * @param as Left set.
+	 * @param b Right item.
+	 * @param cmp Comparator (both arguments must abide the order).
+	 * @param fm Merge function (for combining equivalent items).
+	 * @param op Set operation.
+	 * @return Result set.
+	 * @since 1.1.0
+	 */
+	public static long[] merge(int afrom, int ato, long[] as, long b, LongToIntBinaryOperator cmp, LongBinaryOperator fm, SetOperator op) {
+		return merge(b, afrom, ato, as, cmp, (long va, long vb) -> fm.applyAsLong(vb, va), op.reverse());
+	}
+
+	/**
+	 * Applies a set operation upon an object and a set expressed an ordered array of objects.
+	 * 
+	 * @param <T> Item type.
+	 * @param rc Item type.
+	 * @param afrom Start of the left set (inclusive).
+	 * @param ato End of the left set (exclusive).
+	 * @param as Left set.
+	 * @param b Right item.
+	 * @param cmp Comparator (both arguments must abide the order).
+	 * @param fm Merge function (for combining equivalent items).
+	 * @param op Set operation.
+	 * @return Result set.
+	 * @since 1.1.0
+	 */
+	public static <T> T[] merge(Class<? extends T> rc, int afrom, int ato, T[] as, T b, Comparator<T> cmp, BinaryOperator<T> fm, SetOperator op) {
+		return merge(rc, b, afrom, ato, as, cmp, (T va, T vb) -> fm.apply(vb, va), op.reverse());
+	}
+	
+	/* MERGE/BINARY/MANY-MANY */
 	
 	/**
 	 * (P) Applies a set operation upon a pair of sets expressed as ordered arrays of <code>int</code>s.
@@ -1299,48 +1630,57 @@ public final class RJ {
 	}
 
 	private static void _merge(int afrom, int ato, int[] as, int bfrom, int bto, int[] bs, IntBinaryOperator cmp, IntBinaryOperator fm, SetOperator op, Consumer<int[]> fh) {
-		if (ato-afrom<=0) {
-			fh.accept(op.right ? bfrom==0 && bto==bs.length ? bs : bto>bfrom ? Arrays.copyOfRange(bs,bfrom,bto) : EMPTY_INT : EMPTY_INT);
-		} else if (bto-bfrom<=0) {
-			fh.accept(op.left ? afrom==0 && ato==as.length ? as : ato>afrom ? Arrays.copyOfRange(as,afrom,ato) : EMPTY_INT : EMPTY_INT);
-		} else {
-			int ln = ato+bto-afrom-bfrom;
-			if (xs.fork(ln)) {
-				int ah = (ato-afrom)>>1;
-				int bh = (bto-bfrom)>>1;
-				
-				int pb = RJ.search(bfrom, bto, (int p) -> cmp.applyAsInt(bs[p],as[ah]));
-				int pa = RJ.search(afrom, ato, (int p) -> cmp.applyAsInt(as[p],bs[bh]));
-
-				if (pb<0) {
-					pb = ~pb;
+		int aln = ato-afrom;
+		int bln = bto-bfrom;
+		if (aln>2 && bln>2 && xs.fork(aln+bln)) {
+			int ap, bp;
+			if (aln >= bln) {
+				ap = (aln>>1)+afrom;
+				int _bp = search(bfrom, bto, (int p) -> cmp.applyAsInt(bs[p],as[ap]));
+				if (_bp==~bfrom) {
+					_merge(ap, ato, as, bfrom, bto, bs, cmp, fm, op,
+							op.left ? (int[] r) -> fh.accept(join(Arrays.copyOfRange(as, afrom, ap), r)) : fh);
+					return;
+				} else if (_bp==~bto) {
+					_merge(afrom, ap, as, bfrom, bto, bs, cmp, fm, op,
+							op.right ? (int[] r) -> fh.accept(join(r, Arrays.copyOfRange(as, ap, ato))) : fh);
+					return;
 				}
-				if (pa<0) {
-					pa = ~pa;
-				}
-				
-				int a1 = Math.min(ah, pa);
-				int a2 = Math.max(ah, pa);
-				
-				int b1 = Math.min(bh, pb);
-				int b2 = Math.max(bh, pb);
-
-				xs.queue((Consumer<int[]> h) -> _merge(afrom, a1, as, bfrom, b1, bs, cmp, fm, op, h),
-						(Consumer<int[]> h) -> _merge(a1, a2, as, b1, b2, bs, cmp, fm, op, h),
-						(Consumer<int[]> h) -> _merge(a2, ato, as, b2, bto, bs, cmp, fm, op, h),
-						fh, RJ::join);
+				bp = _bp<0 ? ~_bp : _bp;
 			} else {
-				fh.accept(_merge(afrom, ato, as, bfrom, bto, bs, cmp, fm, op));
+				bp = (bln>>1)+bfrom;
+				int _ap = search(afrom, ato, (int p) -> cmp.applyAsInt(as[p],bs[bp]));
+				if (_ap==~afrom) {
+					_merge(afrom, ato, as, bp, bto, bs, cmp, fm, op,
+							op.left ? (int[] r) -> fh.accept(join(Arrays.copyOfRange(bs, bfrom, bp), r)) : fh);
+					return;
+				} else if (_ap==~ato) {
+					_merge(afrom, ato, as, bfrom, bp, bs, cmp, fm, op,
+							op.right ? (int[] r) -> fh.accept(join(r,Arrays.copyOfRange(bs, bp, bto))) : fh);
+					return;
+				}
+				ap = _ap<0 ? ~_ap : _ap;
 			}
-		}
+			xs.queue((Consumer<int[]> h) -> _merge(afrom, ap, as, bfrom, bp, bs, cmp, fm, op, h),
+					(Consumer<int[]> h) -> _merge(ap, ato, as, bp, bto, bs, cmp, fm, op, h),
+					fh, RJ::join);
+		} else {
+			fh.accept(_merge(afrom, ato, as, bfrom, bto, bs, cmp, fm, op));
+		}		
 	}
 
 	private static int[] _merge(int afrom, int ato, int[] as, int bfrom, int bto, int[] bs, IntBinaryOperator cmp, IntBinaryOperator fm, SetOperator op) {
-		int ln = ato+bto-afrom-bfrom;
-		if (ln<=0) {
-			return EMPTY_INT;
+		int aln = ato-afrom;
+		int bln = bto-bfrom;
+		if (aln<2) {
+			 return aln==1 ? merge(as[afrom], bfrom, bto, bs, cmp, fm, op)
+					 : op.right && bto>bfrom ? Arrays.copyOfRange(bs,bfrom,bto) : EMPTY_INT;
+		} else if (bln<2) {
+			return bln==1 ? merge(afrom, ato, as, bs[bfrom], cmp, fm, op)
+					: op.left  && ato>afrom? Arrays.copyOfRange(as,afrom,ato) : EMPTY_INT;
 		}
-		int[] rt = new int[ln];
+		
+		int[] rt = new int[aln+bln];
 		int ap=afrom, bp=bfrom, p=0;
 		while (ap<ato && bp<bto) {
 			int cv = cmp.applyAsInt(as[ap], bs[bp]);
@@ -1393,48 +1733,57 @@ public final class RJ {
 	}
 
 	private static void _merge(int afrom, int ato, long[] as, int bfrom, int bto, long[] bs, LongToIntBinaryOperator cmp, LongBinaryOperator fm, SetOperator op, Consumer<long[]> fh) {
-		if (ato-afrom<=0) {
-			fh.accept(op.right ? bfrom==0 && bto==bs.length ? bs : bto>bfrom ? Arrays.copyOfRange(bs,bfrom,bto) : EMPTY_LONG : EMPTY_LONG);
-		} else if (bto-bfrom<=0) {
-			fh.accept(op.left ? afrom==0 && ato==as.length ? as : ato>afrom ? Arrays.copyOfRange(as,afrom,ato) : EMPTY_LONG : EMPTY_LONG);
-		} else {
-			int ln = ato+bto-afrom-bfrom;
-			if (xs.fork(ln)) {
-				int ah = (ato-afrom)>>1;
-				int bh = (bto-bfrom)>>1;
-				
-				int pb = RJ.search(bfrom, bto, (int p) -> cmp.applyAsInt(bs[p],as[ah]));
-				int pa = RJ.search(afrom, ato, (int p) -> cmp.applyAsInt(as[p],bs[bh]));
-
-				if (pb<0) {
-					pb = ~pb;
+		int aln = ato-afrom;
+		int bln = bto-bfrom;
+		if (aln>2 && bln>2 && xs.fork(aln+bln)) {
+			int ap, bp;
+			if (aln >= bln) {
+				ap = (aln>>1)+afrom;
+				int _bp = search(bfrom, bto, (int p) -> cmp.applyAsInt(bs[p],as[ap]));
+				if (_bp==~bfrom) {
+					_merge(ap, ato, as, bfrom, bto, bs, cmp, fm, op,
+							op.left ? (long[] r) -> fh.accept(join(Arrays.copyOfRange(as, afrom, ap), r)) : fh);
+					return;
+				} else if (_bp==~bto) {
+					_merge(afrom, ap, as, bfrom, bto, bs, cmp, fm, op,
+							op.right ? (long[] r) -> fh.accept(join(r, Arrays.copyOfRange(as, ap, ato))) : fh);
+					return;
 				}
-				if (pa<0) {
-					pa = ~pa;
-				}
-				
-				int a1 = Math.min(ah, pa);
-				int a2 = Math.max(ah, pa);
-				
-				int b1 = Math.min(bh, pb);
-				int b2 = Math.max(bh, pb);
-
-				xs.queue((Consumer<long[]> h) -> _merge(afrom, a1, as, bfrom, b1, bs, cmp, fm, op, h),
-						(Consumer<long[]> h) -> _merge(a1, a2, as, b1, b2, bs, cmp, fm, op, h),
-						(Consumer<long[]> h) -> _merge(a2, ato, as, b2, bto, bs, cmp, fm, op, h),
-						fh, RJ::join);
+				bp = _bp<0 ? ~_bp : _bp;
 			} else {
-				fh.accept(_merge(afrom, ato, as, bfrom, bto, bs, cmp, fm, op));
+				bp = (bln>>1)+bfrom;
+				int _ap = search(afrom, ato, (int p) -> cmp.applyAsInt(as[p],bs[bp]));
+				if (_ap==~afrom) {
+					_merge(afrom, ato, as, bp, bto, bs, cmp, fm, op,
+							op.left ? (long[] r) -> fh.accept(join(Arrays.copyOfRange(bs, bfrom, bp), r)) : fh);
+					return;
+				} else if (_ap==~ato) {
+					_merge(afrom, ato, as, bfrom, bp, bs, cmp, fm, op,
+							op.right ? (long[] r) -> fh.accept(join(r,Arrays.copyOfRange(bs, bp, bto))) : fh);
+					return;
+				}
+				ap = _ap<0 ? ~_ap : _ap;
 			}
+			xs.queue((Consumer<long[]> h) -> _merge(afrom, ap, as, bfrom, bp, bs, cmp, fm, op, h),
+					(Consumer<long[]> h) -> _merge(ap, ato, as, bp, bto, bs, cmp, fm, op, h),
+					fh, RJ::join);
+		} else {
+			fh.accept(_merge(afrom, ato, as, bfrom, bto, bs, cmp, fm, op));
 		}
 	}
 
 	private static long[] _merge(int afrom, int ato, long[] as, int bfrom, int bto, long[] bs, LongToIntBinaryOperator cmp, LongBinaryOperator fm, SetOperator op) {
-		int ln = ato+bto-afrom-bfrom;
-		if (ln<=0) {
-			return EMPTY_LONG;
+		int aln = ato-afrom;
+		int bln = bto-bfrom;
+		if (aln<2) {
+			 return aln==1 ? merge(as[afrom], bfrom, bto, bs, cmp, fm, op)
+					 : op.right && bto>bfrom ? Arrays.copyOfRange(bs,bfrom,bto) : EMPTY_LONG;
+		} else if (bln<2) {
+			return bln==1 ? merge(afrom, ato, as, bs[bfrom], cmp, fm, op)
+					: op.left  && ato>afrom? Arrays.copyOfRange(as,afrom,ato) : EMPTY_LONG;
 		}
-		long[] rt = new long[ato+bto-afrom-bfrom];
+		
+		long[] rt = new long[aln+bln];
 		int ap=afrom, bp=bfrom, p=0;
 		while (ap<ato && bp<bto) {
 			int cv = cmp.applyAsInt(as[ap], bs[bp]);
@@ -1489,51 +1838,59 @@ public final class RJ {
 				: _merge(rc, 0, as.length, as, 0, bs.length, bs, cmp, fm, op);
 	}
 
-	@SuppressWarnings("unchecked")
 	private static <T> void _merge(Class<? extends T> rc, int afrom, int ato, T[] as, int bfrom, int bto, T[] bs, Comparator<T> cmp, BinaryOperator<T> fm, SetOperator op, Consumer<T[]> fh) {
-		if (ato-afrom<=0) {
-			fh.accept(op.right ? bfrom==0 && bto==bs.length ? bs : bto>bfrom ? Arrays.copyOfRange(bs,bfrom,bto) : (T[])empty(as.getClass().getComponentType()) : (T[])empty(as.getClass().getComponentType()));
-		} else if (bto-bfrom<=0) {
-			fh.accept(op.left ? afrom==0 && ato==as.length ? as : ato>afrom ? Arrays.copyOfRange(as,afrom,ato) : (T[])empty(as.getClass().getComponentType()) : (T[])empty(as.getClass().getComponentType()));
-		} else {
-			int ln = ato+bto-afrom-bfrom;
-			if (xs.fork(ln)) {
-				int ah = (ato-afrom)>>1;
-				int bh = (bto-bfrom)>>1;
-				
-				int pb = RJ.search(bfrom, bto, (int p) -> cmp.compare(bs[p],as[ah]));
-				int pa = RJ.search(afrom, ato, (int p) -> cmp.compare(as[p],bs[bh]));
-
-				if (pb<0) {
-					pb = ~pb;
+		int aln = ato-afrom;
+		int bln = bto-bfrom;
+		if (aln>2 && bln>2 && xs.fork(aln+bln)) {
+			int ap, bp;
+			if (aln >= bln) {
+				ap = (aln>>1)+afrom;
+				int _bp = search(bfrom, bto, (int p) -> cmp.compare(bs[p],as[ap]));
+				if (_bp==~bfrom) {
+					_merge(rc, ap, ato, as, bfrom, bto, bs, cmp, fm, op,
+							op.left ? (T[] r) -> fh.accept(join(Arrays.copyOfRange(as, afrom, ap), r)) : fh);
+					return;
+				} else if (_bp==~bto) {
+					_merge(rc, afrom, ap, as, bfrom, bto, bs, cmp, fm, op,
+							op.right ? (T[] r) -> fh.accept(join(r, Arrays.copyOfRange(as, ap, ato))) : fh);
+					return;
 				}
-				if (pa<0) {
-					pa = ~pa;
-				}
-				
-				int a1 = Math.min(ah, pa);
-				int a2 = Math.max(ah, pa);
-				
-				int b1 = Math.min(bh, pb);
-				int b2 = Math.max(bh, pb);
-
-				xs.queue((Consumer<T[]> h) -> _merge(rc, afrom, a1, as, bfrom, b1, bs, cmp, fm, op, h),
-						(Consumer<T[]> h) -> _merge(rc, a1, a2, as, b1, b2, bs, cmp, fm, op, h),
-						(Consumer<T[]> h) -> _merge(rc, a2, ato, as, b2, bto, bs, cmp, fm, op, h),
-						fh, RJ::join);
+				bp = _bp<0 ? ~_bp : _bp;
 			} else {
-				fh.accept(_merge(rc, afrom, ato, as, bfrom, bto, bs, cmp, fm, op));
+				bp = (bln>>1)+bfrom;
+				int _ap = search(afrom, ato, (int p) -> cmp.compare(as[p],bs[bp]));
+				if (_ap==~afrom) {
+					_merge(rc, afrom, ato, as, bp, bto, bs, cmp, fm, op,
+							op.left ? (T[] r) -> fh.accept(join(Arrays.copyOfRange(bs, bfrom, bp), r)) : fh);
+					return;
+				} else if (_ap==~ato) {
+					_merge(rc, afrom, ato, as, bfrom, bp, bs, cmp, fm, op,
+							op.right ? (T[] r) -> fh.accept(join(r,Arrays.copyOfRange(bs, bp, bto))) : fh);
+					return;
+				}
+				ap = _ap<0 ? ~_ap : _ap;
 			}
+			xs.queue((Consumer<T[]> h) -> _merge(rc, afrom, ap, as, bfrom, bp, bs, cmp, fm, op, h),
+					(Consumer<T[]> h) -> _merge(rc, ap, ato, as, bp, bto, bs, cmp, fm, op, h),
+					fh, RJ::join);
+		} else {
+			fh.accept(_merge(rc, afrom, ato, as, bfrom, bto, bs, cmp, fm, op));
 		}
 	}
 
 	@SuppressWarnings("unchecked")
 	private static <T> T[] _merge(Class<? extends T> rc, int afrom, int ato, T[] as, int bfrom, int bto, T[] bs, Comparator<T> cmp, BinaryOperator<T> fm, SetOperator op) {
-		int ln = ato+bto-afrom-bfrom;
-		if (ln<=0) {
-			return empty(rc);
+		int aln = ato-afrom;
+		int bln = bto-bfrom;
+		if (aln<2) {
+			 return aln==1 ? merge(rc, as[afrom], bfrom, bto, bs, cmp, fm, op)
+					 : op.right && bto>bfrom ? Arrays.copyOfRange(bs,bfrom,bto) : empty(rc);
+		} else if (bln<2) {
+			return bln==1 ? merge(rc, afrom, ato, as, bs[bfrom], cmp, fm, op)
+					: op.left  && ato>afrom? Arrays.copyOfRange(as,afrom,ato) : empty(rc);
 		}
-		T[] rt = (T[]) Array.newInstance(rc, ato+bto-afrom-bfrom);
+		
+		T[] rt = (T[]) Array.newInstance(rc, aln+bln);
 		int ap=afrom, bp=bfrom, p=0;
 		while (ap<ato && bp<bto) {
 			int cv = cmp.compare(as[ap], bs[bp]);

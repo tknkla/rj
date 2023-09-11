@@ -22,6 +22,8 @@
  */
 package com.tknkla.rj.groups;
 
+import java.util.function.IntUnaryOperator;
+
 import com.tknkla.rj.RJ;
 
 /**
@@ -70,7 +72,7 @@ public interface IntGroupOperator {
 	int identityAsInt();
 	
 	/**
-	 * Applies the (commutative) group operation. 
+	 * Applies the (commutative) group operation (binary). 
 	 * @param a Left element.
 	 * @param b Right element.
 	 * @return Result of the group operation.
@@ -95,4 +97,16 @@ public interface IntGroupOperator {
 	 */
 	int signum(int v);
 	
+	/**
+	 * Applies the (commutative) group operator (anary).
+	 * @param from Index of the first element (inclusive).
+	 * @param to Index of the last element (exclusive).
+	 * @param fn Function to supply the nth element.
+	 * @return Result of the group operation.
+	 * @since 1.1.0
+	 */
+	default int applyAsInt(int from, int to, IntUnaryOperator fn) {
+		return RJ.execute(from, to, identityAsInt(), fn, this::applyAsInt);
+	}
+
 }

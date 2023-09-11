@@ -53,6 +53,7 @@ import com.tknkla.rj.functions.TriFunction;
  * @author Timo Santasalo
  * @since 1.0.0
  */
+@SuppressWarnings("deprecation")
 public interface ExecutionStrategy {
 	
 	/**
@@ -123,8 +124,7 @@ public interface ExecutionStrategy {
 	 */
 	static ExecutionStrategy PARALLEL = ((Supplier<ExecutionStrategy>)(() -> {
 		ForkJoinPool cp = ForkJoinPool.commonPool();
-		return new ForkJoinPoolExecutionStrategy(cp,
-			ForkJoinPoolExecutionStrategy.defaultCondition(32 - Integer.numberOfLeadingZeros(cp.getParallelism()), 4));
+		return new ForkJoinPoolExecutionStrategy(cp, 4, 32 - Integer.numberOfLeadingZeros(cp.getParallelism()));
 		})).get();
 	
 	/* EXECUTE/LATCH */
@@ -337,6 +337,7 @@ public interface ExecutionStrategy {
 	 * @param h Consumer to be executed afterward both tasks are finished.
 	 * @param fn Merge operator.
 	 */
+	@Deprecated
 	default <T, R> void queue(Consumer<Consumer<T>> a, Consumer<Consumer<T>> b, Consumer<Consumer<T>> c, Consumer<R> h, TriFunction<T, T, T, R> fn) {
 		AtomicReference<T> ra = new AtomicReference<>();
 		AtomicReference<T> rb = new AtomicReference<>();
@@ -383,18 +384,19 @@ public interface ExecutionStrategy {
 	 * 
 	 * <p>If concurrency is zero, {@link #LOCAL} is returned; otherwise an instance of
 	 *  {@link ForkJoinPoolExecutionStrategy} is created with an associated pool which can be
-	 *  accessed through {@link ForkJoinPoolExecutionStrategy#getPool()}
+	 *  accessed through {@link ForkJoinPoolExecutionStrategy#getPool()}.</p>
 	 * 
 	 * @param concurrency Concurrency number (base-2 logarithm of number of threads).
-	 * @param workSize Minimal work size
+	 * @param workSizeFactor Minimal work size.
 	 * @return An execution strategy.
+	 * @see ForkJoinPoolExecutionStrategy
 	 */
-	static ExecutionStrategy create(int concurrency, int workSize) {
+	static ExecutionStrategy create(int concurrency, int workSizeFactor) {
 		return concurrency==0
 				? LOCAL
 				: new ForkJoinPoolExecutionStrategy(
 						new ForkJoinPool(1<<concurrency, ForkJoinPool.defaultForkJoinWorkerThreadFactory, null, true),
-						ForkJoinPoolExecutionStrategy.defaultCondition(concurrency, workSize));
+						workSizeFactor, concurrency);
 	}
 	
 }
